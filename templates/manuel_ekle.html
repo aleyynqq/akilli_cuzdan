@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Manuel Fiş Ekle – AkıllıCüzdan</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .full { grid-column: 1/-1; }
+  .product-entries { display:flex; flex-direction:column; gap:6px; }
+  .product-entry { display:flex; gap:8px; align-items:center; }
+  .product-entry input { flex:1; }
+</style>
+<script>
+(function(){
+  try {
+    var saved = localStorage.getItem('akillicuzdan-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+  } catch(e) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+</script>
+<link rel="stylesheet" href="/static/css/theme.css">
+</head>
+<body>
+<div class="app-layout">
+{% from 'layout.html' import sidebar, flash_messages %}
+{{ sidebar('receipts') }}
+
+<div class="main">
+  <div class="main-inner">
+
+    <div class="page-header">
+      <h1 class="page-title">📝 Manuel Fiş Ekle</h1>
+      <p class="page-desc">Fiş/fatura bilgilerini elle girerek kaydedebilirsiniz.</p>
+    </div>
+
+    {{ flash_messages() }}
+
+    <div class="panel" style="max-width:800px;margin:0 auto;">
+      <form method="POST">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>📅 Tarih (gg/aa/yyyy)</label>
+            <input class="form-input" type="text" name="tarih" placeholder="01/01/2026" required>
+          </div>
+          <div class="form-group">
+            <label>🕐 Saat</label>
+            <input class="form-input" type="text" name="saat" placeholder="14:30">
+          </div>
+          <div class="form-group">
+            <label>💰 Toplam Tutar (TL)</label>
+            <input class="form-input" type="number" step="0.01" name="toplam" placeholder="0.00" required>
+          </div>
+          <div class="form-group">
+            <label>🧾 KDV (TL)</label>
+            <input class="form-input" type="number" step="0.01" name="kdv" placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label>% KDV Oranı</label>
+            <input class="form-input" type="text" name="kdv_orani" placeholder="%1, %8, %18">
+          </div>
+          <div class="form-group">
+            <label>🏪 Mağaza / Firma</label>
+            <input class="form-input" type="text" name="magaza" placeholder="Migros, A101..." required>
+          </div>
+          <div class="form-group">
+            <label>🛒 Kategori</label>
+            <select class="form-input" name="kategori">
+              {% for k in kategoriler %}
+              <option value="{{ k }}">{{ k }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>📄 Belge Tipi</label>
+            <select class="form-input" name="belge_tipi">
+              <option value="fis">Fiş</option>
+              <option value="fatura">Fatura</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>🔢 Vergi No (isteğe bağlı)</label>
+            <input class="form-input" type="text" name="vergi_no" placeholder="Vergi numarası">
+          </div>
+          <div class="form-group full">
+            <label>🛍️ Ürünler (Her satıra "Ürün Adı: Fiyat" yazın)</label>
+            <textarea class="form-input" name="urunler" rows="5" placeholder="Domates: 24.90
+Peynir: 89.90
+Ekmek: 12.00"></textarea>
+            <small style="color:var(--muted);">Her satır: Ürün adı, iki nokta, fiyat (TL)</small>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:24px;justify-content:flex-end;">
+          <a href="/receipts" class="btn" style="background:rgba(255,255,255,.05);color:var(--muted2);">İptal</a>
+          <button type="submit" class="btn btn-primary">💾 Fişi Kaydet</button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+</div>
+<script src="/static/js/theme.js"></script>
+</body>
+</html>

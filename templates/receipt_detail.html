@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fiş Detayı – AkıllıCüzdan</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;}
+  .panel-title{font-size:16px;font-weight:700;margin-bottom:20px;}
+  .detail-row{display:flex;justify-content:space-between;align-items:center;
+    padding:13px 0;border-bottom:1px solid var(--border);}
+  .detail-row:last-child{border-bottom:none;}
+  .detail-label{font-size:13px;color:var(--muted2);}
+  .detail-value{font-size:14px;font-weight:700;text-align:right;}
+  .amount-big{font-size:42px;font-weight:800;color:#818cf8;margin:16px 0;}
+  .products-list{display:flex;flex-direction:column;gap:8px;}
+  .product-item{display:flex;justify-content:space-between;
+    padding:11px 14px;background:rgba(255,255,255,.03);border-radius:10px;
+    border:1px solid var(--border);}
+  .product-name{font-size:14px;font-weight:500;}
+  .product-price{font-size:14px;font-weight:700;color:#818cf8;}
+  .ai-box{background:#080f1e;border:1px solid rgba(139,92,246,.2);border-radius:14px;
+    padding:22px;max-height:500px;overflow-y:auto;line-height:1.85;font-size:13px;
+    color:#cbd5e1;white-space:pre-wrap;}
+  .ai-box .ai-tag{display:block;padding:4px 12px;border-radius:999px;
+    font-size:11px;font-weight:700;margin:8px 0;}
+  .ai-box .tag-blue{background:rgba(99,102,241,.15);color:#818cf8;}
+  .ai-box .tag-yellow{background:rgba(245,158,11,.12);color:#fbbf24;}
+  .ai-box .tag-green{background:rgba(16,185,129,.12);color:#34d399;}
+  .ai-box .tag-purple{background:rgba(168,85,247,.12);color:#c084fc;}
+  .ai-box .tag-orange{background:rgba(249,115,22,.12);color:#fb923c;}
+  .ocr-box{background:#fff;color:#1e293b;border-radius:12px;padding:18px;
+    max-height:400px;overflow-y:auto;font-family:Consolas,monospace;
+    font-size:12px;white-space:pre-wrap;}
+  .back-bar{display:flex;gap:12px;margin-bottom:24px;}
+  @media(max-width:900px){.detail-grid{grid-template-columns:1fr;}}
+</style>
+<script>
+(function(){
+  try {
+    var saved = localStorage.getItem('akillicuzdan-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+  } catch(e) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+</script>
+<link rel="stylesheet" href="/static/css/theme.css">
+</head>
+<body>
+<div class="app-layout">
+{% from 'layout.html' import sidebar %}
+{{ sidebar('receipts') }}
+
+<div class="main">
+  <div class="main-inner">
+
+    <div class="back-bar">
+      <a href="/receipts" class="btn" style="background:rgba(255,255,255,.05);color:var(--muted2);">← Geri</a>
+      <a href="/edit/{{ fis['id'] }}" class="btn btn-primary">✏️ Düzenle</a>
+      <a href="/delete/{{ fis['id'] }}" class="btn btn-danger"
+         onclick="return confirm('Bu fişi silmek istediğinize emin misiniz?')">🗑️ Sil</a>
+    </div>
+
+    <div class="detail-grid">
+       
+      <div>
+        <div class="panel" style="margin-bottom:20px;">
+          <div class="panel-title">📄 Fiş Bilgileri</div>
+          <div class="amount-big">{{ fis['toplam'] }} TL</div>
+          <div class="detail-row"><span class="detail-label">🏪 Mağaza</span><span class="detail-value">{{ fis['magaza'] }}</span></div>
+          <div class="detail-row"><span class="detail-label">📅 Tarih</span><span class="detail-value">{{ fis['tarih'] if fis['tarih'] and fis['tarih'] != 'Bulunamadı' else '—' }}</span></div>
+          <div class="detail-row"><span class="detail-label">🕐 Saat</span><span class="detail-value">{{ fis['saat'] or '—' }}</span></div>
+          <div class="detail-row"><span class="detail-label">🛒 Kategori</span><span class="detail-value">{{ fis['kategori'] }}</span></div>
+          <div class="detail-row"><span class="detail-label">🧾 KDV</span><span class="detail-value">{{ fis['kdv'] }} TL ({{ fis['kdv_orani'] }})</span></div>
+          <div class="detail-row"><span class="detail-label">📄 Belge Tipi</span><span class="detail-value">{{ fis['belge_tipi'].title() }}</span></div>
+          {% if fis['vergi_no'] %}
+          <div class="detail-row"><span class="detail-label">🔢 Vergi No</span><span class="detail-value">{{ fis['vergi_no'] }}</span></div>
+          {% endif %}
+          <div class="detail-row"><span class="detail-label">📌 Eklenme</span><span class="detail-value">{{ fis['eklenme_tarihi'][:16] }}</span></div>
+        </div>
+
+        {% if urunler %}
+        <div class="panel" style="margin-bottom:20px;">
+          <div class="panel-title">🛍️ Ürünler ({{ urunler | length }})</div>
+          <div class="products-list">
+            {% for u in urunler %}
+            <div class="product-item">
+              <span class="product-name">{{ u.ad }}</span>
+              <span class="product-price">{{ u.fiyat }} TL</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        
+        <div class="panel">
+          <div class="panel-title">🧾 Fiş Görünümü</div>
+          <div class="fis-container" id="fisContainer">
+            <div class="fis-paper">
+              <div class="fis-header">
+                <h3>{{ fis['magaza'] }}</h3>
+                <p>
+                  {% if fis['tarih'] and fis['tarih'] != 'Bulunamadı' %}{{ fis['tarih'] }}{% endif %}
+                  {% if fis['saat'] and fis['saat'] != '' %} {{ fis['saat'] }}{% endif %}
+                </p>
+              </div>
+              <div class="fis-body">
+                <table>
+                  <thead><tr><th>Ürün</th><th class="text-right">Fiyat</th></tr></thead>
+                  <tbody>
+                    {% for u in urunler %}
+                    <tr><td>{{ u.ad }}</td><td class="text-right">{{ u.fiyat }} TL</td></tr>
+                    {% endfor %}
+                  </tbody>
+                  <tfoot>
+                    <tr><td><strong>Toplam</strong></td><td class="text-right"><strong>{{ fis['toplam'] }} TL</strong></td></tr>
+                    <tr><td>KDV ({{ fis['kdv_orani'] }})</td><td class="text-right">{{ fis['kdv'] }} TL</td></tr>
+                  </tfoot>
+                </table>
+              </div>
+              <div class="fis-footer">
+                <p>Teşekkür ederiz!</p>
+              </div>
+            </div>
+            <button type="button" onclick="indirFis()" class="btn btn-primary btn-sm" style="margin-top: 12px;">📥 JPG İndir</button>
+          </div>
+        </div>
+      </div>
+
+     
+      <div>
+        {% if fis['ai_yorum'] %}
+        <div class="panel" style="margin-bottom:20px;">
+          <div class="panel-title">🤖 AI Analizi</div>
+          <div class="ai-box">{{ fis['ai_yorum'] | safe }}</div>
+        </div>
+        {% endif %}
+        {% if fis['ocr_text'] %}
+        <div class="panel">
+          <div class="panel-title">🔍 OCR Metni</div>
+          <div class="ocr-box">{{ fis['ocr_text'] }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+function indirFis() {
+  const element = document.getElementById('fisContainer');
+  html2canvas(element.querySelector('.fis-paper'), {
+    backgroundColor: '#ffffff',
+    scale: 2
+  }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = 'fis_' + new Date().getTime() + '.jpg';
+    link.href = canvas.toDataURL('image/jpeg', 0.9);
+    link.click();
+  });
+}
+</script>
+<script src="/static/js/theme.js"></script>
+</body>
+</html>

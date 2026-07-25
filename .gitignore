@@ -1,0 +1,9 @@
+.venv/
+.env
+__pycache__/
+*.pyc
+uploads/
+*.db
+*.sqlite
+*.sqlite3
+akillicuzdan.db

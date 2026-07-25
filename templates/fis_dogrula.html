@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fiş Doğrulama – AkıllıCüzdan</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+<style>.page-title .bi,.panel-title .bi,.side-title .bi,label .bi{margin-right:7px;color:#93c5fd}</style>
+<style>
+  .verify-page{display:flex;flex-direction:column;gap:20px;}
+  .verify-top{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(360px,.92fr);gap:22px;align-items:start;}
+  .verify-bottom{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start;}
+  .right-stack{display:flex;flex-direction:column;gap:18px;}
+  .panel{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;box-shadow:0 14px 40px rgba(0,0,0,.12);}
+  .panel-title{font-size:16px;font-weight:800;margin-bottom:18px;display:flex;align-items:center;gap:8px;}
+  .verify-note{padding:14px 16px;border-radius:14px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.22);color:#c7d2fe;font-size:13px;line-height:1.6;}
+  .duplicate-warning{padding:16px;border-radius:16px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:#fde68a;}
+  .duplicate-warning strong{color:#fbbf24;}
+  .duplicate-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px;max-height:210px;overflow-y:auto;padding-right:4px;}
+  .duplicate-item{background:rgba(15,23,42,.62);border:1px solid rgba(245,158,11,.20);border-radius:12px;padding:12px;font-size:13px;color:#e5e7eb;}
+  .duplicate-item a{color:#fbbf24;text-decoration:none;font-weight:800;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .form-group{margin-bottom:14px;}
+  .form-group label{display:block;margin-bottom:7px;font-size:13px;font-weight:700;color:var(--muted2);}
+  .form-textarea{width:100%;min-height:180px;resize:vertical;background:rgba(15,23,42,.72);color:#e5e7eb;border:1px solid var(--border);border-radius:12px;padding:13px 14px;font-family:Consolas,monospace;font-size:13px;line-height:1.55;}
+  .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;padding-top:4px;}
+  .receipt-img-wrap{background:#fff;border:1px solid var(--border);border-radius:14px;padding:10px;display:flex;align-items:center;justify-content:center;}
+  .receipt-img{width:100%;max-height:360px;object-fit:contain;border-radius:10px;background:#fff;}
+  .mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+  .mini-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:14px;padding:14px;min-height:78px;}
+  .mini-card small{display:block;color:var(--muted2);font-size:12px;margin-bottom:5px;}
+  .mini-card strong{display:block;color:#fff;font-size:17px;line-height:1.25;}
+  .ai-box,.ocr-box{border-radius:14px;padding:18px;max-height:360px;overflow-y:auto;line-height:1.75;font-size:12px;white-space:pre-wrap;}
+  .ai-box{background:#080f1e;border:1px solid rgba(139,92,246,.2);color:#cbd5e1;}
+  .ocr-box{background:#fff;border:1px solid rgba(255,255,255,.1);color:#1e293b;font-family:Consolas,monospace;}
+  .small-muted{font-size:12px;color:var(--muted2);line-height:1.6;}
+  .section-divider{height:1px;background:var(--border);margin:2px 0 14px;opacity:.7;}
+  @media(max-width:1180px){.verify-top,.verify-bottom{grid-template-columns:1fr}.duplicate-list{grid-template-columns:1fr}.receipt-img{max-height:420px}}
+  @media(max-width:700px){.form-row,.mini-stats{grid-template-columns:1fr}.panel{padding:18px}.actions .btn{width:100%;justify-content:center}}
+</style>
+<script>
+(function(){
+  try {
+    var saved = localStorage.getItem('akillicuzdan-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+  } catch(e) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+</script>
+<link rel="stylesheet" href="/static/css/theme.css">
+</head>
+<body>
+<div class="app-layout">
+{% from 'layout.html' import sidebar, flash_messages %}
+{{ sidebar('receipts') }}
+
+<div class="main">
+  <div class="main-inner">
+    {{ flash_messages() }}
+
+    <div class="page-header">
+      <h1 class="page-title"><i class="bi bi-check2-square"></i> Fiş Doğrulama</h1>
+      <p class="page-desc">OCR ve AI sonucu kaydedilmeden önce kontrol edilir. Gerekirse alanları düzeltip onaylayabilirsin.</p>
+    </div>
+
+    <div class="verify-page">
+      <div class="verify-note">
+        Bu ekranda fiş <strong>henüz veritabanına kaydedilmedi</strong>. Sistem önce OCR ile okudu, AI ile düzeltti ve tekrar kontrolü yaptı. Kaydetmeden önce mağaza, tarih, toplam, kategori ve ürünleri doğrulayabilirsin.
+      </div>
+
+      {% if duplicates and duplicates|length > 0 %}
+      <div class="duplicate-warning">
+        <strong>⚠️ Benzer fiş uyarısı:</strong> Bu fişe benzer bir kayıt daha önce eklenmiş olabilir. Mağaza, tarih ve toplam tutar aynı/çok yakın görünüyor. Eminsen yine de kaydedebilirsin.
+        <div class="duplicate-list">
+          {% for d in duplicates %}
+          <div class="duplicate-item">
+            <strong>#{{ d.id }} – {{ d.magaza }}</strong><br>
+            Tarih: {{ d.tarih }} · Toplam: {{ '%.2f'|format(d.toplam) }} TL<br>
+            Kategori: {{ d.kategori }}<br>
+            <a href="/receipt/{{ d.id }}">Mevcut kaydı aç →</a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="verify-top">
+        <div class="panel">
+          <div class="panel-title"><i class="bi bi-pencil-square"></i> Okunan Bilgileri Düzenle</div>
+          <form method="POST" action="/fis-dogrula/kaydet">
+            <input type="hidden" name="pending_id" value="{{ pending_id }}">
+
+            <div class="form-row">
+              <div class="form-group">
+                <label><i class="bi bi-shop"></i> Mağaza / Kurum</label>
+                <input class="form-input" type="text" name="magaza" value="{{ pending.magaza }}" required>
+              </div>
+              <div class="form-group">
+                <label><i class="bi bi-tags"></i> Kategori</label>
+                <select class="form-input" name="kategori">
+                  {% for k in kategoriler %}
+                  <option value="{{ k }}" {{ 'selected' if pending.kategori==k }}>{{ k }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>📅 Tarih</label>
+                <input class="form-input" type="text" name="tarih" value="{{ pending.tarih }}" required>
+              </div>
+              <div class="form-group">
+                <label>🕐 Saat</label>
+                <input class="form-input" type="text" name="saat" value="{{ pending.saat }}">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label><i class="bi bi-cash"></i> Toplam Tutar (TL)</label>
+                <input class="form-input" type="number" step="0.01" name="toplam" value="{{ pending.toplam }}" required>
+              </div>
+              <div class="form-group">
+                <label><i class="bi bi-file-earmark-text"></i> KDV (TL)</label>
+                <input class="form-input" type="number" step="0.01" name="kdv" value="{{ pending.kdv }}">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label><i class="bi bi-bar-chart-line"></i> KDV Oranı</label>
+                <input class="form-input" type="text" name="kdv_orani" value="{{ pending.kdv_orani }}" placeholder="%1 / %10 / %20 / Karma KDV">
+              </div>
+              <div class="form-group">
+                <label><i class="bi bi-file-text"></i> Belge Tipi</label>
+                <select class="form-input" name="belge_tipi">
+                  <option value="fis" {{ 'selected' if pending.belge_tipi=='fis' }}>Fiş</option>
+                  <option value="fatura" {{ 'selected' if pending.belge_tipi=='fatura' }}>Fatura</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label><i class="bi bi-123"></i> Vergi No</label>
+              <input class="form-input" type="text" name="vergi_no" value="{{ pending.vergi_no }}">
+            </div>
+
+            <div class="form-group">
+              <label><i class="bi bi-bag-check"></i> Ürünler</label>
+              <textarea class="form-textarea" name="urunler_text" placeholder="Ürün adı | fiyat">{{ urunler_text }}</textarea>
+              <div class="small-muted">Her satır: <strong>Ürün adı | fiyat</strong> şeklinde olmalı. Örnek: STARBUCKS MOCHA 22 G | 37.00</div>
+            </div>
+
+            <div class="actions">
+              <button type="submit" class="btn btn-primary"><i class="bi bi-check2-circle"></i> Doğrula ve Kaydet</button>
+              <button type="submit" formaction="/fis-dogrula/iptal" formmethod="POST" class="btn btn-danger" onclick="return confirm('Fiş doğrulama iptal edilsin mi?')">İptal Et</button>
+              <a href="/dashboard" class="btn" style="background:rgba(255,255,255,.05);color:var(--muted2);">Dashboard'a Dön</a>
+            </div>
+          </form>
+        </div>
+
+        <div class="right-stack">
+          <div class="panel">
+            <div class="panel-title"><i class="bi bi-search"></i> OCR / AI Durumu</div>
+            <div class="mini-stats">
+              <div class="mini-card"><small>OCR Motoru</small><strong>Tesseract</strong></div>
+              <div class="mini-card"><small>OCR Güven Skoru</small><strong>%{{ pending.ocr_guven }}</strong></div>
+              <div class="mini-card"><small>AI Katmanı</small><strong>Düzeltme</strong></div>
+              <div class="mini-card"><small>Tekrar Kontrolü</small><strong>{{ 'Uyarı Var' if duplicates else 'Temiz' }}</strong></div>
+            </div>
+            <p class="small-muted">{{ pending.islem_notu }}</p>
+          </div>
+
+          {% if pending.dosya_adi %}
+          <div class="panel">
+            <div class="panel-title"><i class="bi bi-file-earmark-image"></i> Yüklenen Görsel</div>
+            <div class="receipt-img-wrap">
+              <img class="receipt-img" src="/uploads/{{ pending.dosya_adi }}" alt="Yüklenen fiş görseli">
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="verify-bottom">
+        {% if pending.ai_yorum %}
+        <div class="panel">
+          <div class="panel-title"><i class="bi bi-cpu"></i> AI Yorumu</div>
+          <div class="ai-box">{{ pending.ai_yorum | safe }}</div>
+        </div>
+        {% endif %}
+
+        {% if pending.ocr_text %}
+        <div class="panel">
+          <div class="panel-title"><i class="bi bi-file-text"></i> Ham OCR Metni</div>
+          <div class="ocr-box">{{ pending.ocr_text }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<script src="/static/js/theme.js"></script>
+</body>
+</html>

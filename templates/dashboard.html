@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard – AkıllıCüzdan</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="stylesheet" href="/static/css/style.css">
+<style>.page-title .bi,.stat-label .bi,.s-label .bi{margin-right:6px;color:#93c5fd}.upload-icon .bi{font-size:42px;color:#818cf8}.ptag .bi{color:#93c5fd}</style>
+<script>
+(function(){
+  try {
+    var saved = localStorage.getItem('akillicuzdan-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+  } catch(e) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+</script>
+<link rel="stylesheet" href="/static/css/theme.css">
+</head>
+<body onload="window.scrollTo(0, 0);">
+<div class="app-layout">
+
+{% from 'layout.html' import sidebar, flash_messages %}
+{{ sidebar('dashboard') }}
+
+<div class="main">
+  <div class="main-inner">
+
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><i class="bi bi-house-door"></i> Anasayfa</h1>
+        <p class="page-desc">Merhaba <strong>{{ session.get('user_name','') }}</strong>, harcama analizine devam et.</p>
+      </div>
+    </div>
+
+    {{ flash_messages() }}
+
+    {% if hata %}
+    <div class="flash flash-error">⚠️ {{ hata }}</div>
+    {% endif %}
+
+
+    {% if yaklasan_abonelikler %}
+    <div class="panel" style="margin-bottom:24px;border-color:rgba(6,182,212,.2);">
+      <div class="panel-title"><span class="ptag"><i class="bi bi-calendar-check"></i></span> Yaklaşan Abonelik Ödemeleri</div>
+      <div class="sub-list">
+        {% for a in yaklasan_abonelikler %}
+        <div class="sub-item">
+          <div style="font-weight:600">{{ a.ad }}</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-weight:700;color:#06b6d4">{{ a.tutar }} TL</span>
+            <span class="sub-days">{{ a.kalan }} gün</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label"><i class="bi bi-receipt"></i> Toplam Fiş</div>
+        <div class="stat-value">{{ toplam_fis }}</div>
+        <div class="stat-sub">Tüm zamanlar</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label"><i class="bi bi-cash-stack"></i> Toplam Harcama</div>
+        <div class="stat-value" style="font-size:24px;">{{ toplam_harcama }} <span style="font-size:16px;color:var(--muted)">TL</span></div>
+        <div class="stat-sub">Tüm zamanlar</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label"><i class="bi bi-calendar3"></i> Bu Ay Kalan</div>
+        <div class="stat-value" style="font-size:24px;">{{ kalan_para }} <span style="font-size:16px;color:var(--muted)">TL</span></div>
+        <div class="stat-sub">Gelir: {{ toplam_gelir }} TL | Harcama: {{ ay_harcama }} TL</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label"><i class="bi bi-file-earmark-text"></i> Toplam KDV</div>
+        <div class="stat-value" style="font-size:24px;">{{ toplam_kdv }} <span style="font-size:16px;color:var(--muted)">TL</span></div>
+        <div class="stat-sub">Ödenen vergi</div>
+      </div>
+    </div>
+
+    
+    <form action="/upload" method="POST" enctype="multipart/form-data" id="uploadForm">
+      <div class="upload-zone" id="dropZone" onclick="document.getElementById('receiptInput').click()">
+        <div class="upload-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+        <div class="upload-title">Fiş / Fatura Yükle</div>
+        <div class="upload-desc">Dosyayı sürükleyip bırakın veya tıklayarak seçin.<br>JPG, PNG, WEBP desteklenir.</div>
+        <input type="file" id="receiptInput" name="receipt" accept="image/*" style="display:none" onchange="fileSelected(this)">
+        <p class="file-selected" id="fileLabel"></p>
+      </div>
+      <div class="upload-actions">
+        <button type="button" class="btn-upload btn-outline" onclick="document.getElementById('receiptInput').click()"><i class="bi bi-folder2-open"></i> Dosya Seç</button>
+        <button type="submit" class="btn-upload btn-scan" id="scanBtn" disabled><i class="bi bi-magic"></i> Analizi Başlat</button>
+      </div>
+    </form>
+
+    
+    <div class="dash-grid">
+      <div class="panel">
+        <div class="panel-title"><span class="ptag"><i class="bi bi-pie-chart"></i></span> Kategori Dağılımı</div>
+        {% if kat_verileri %}
+        <div class="chart-container">
+          <canvas id="katChart"></canvas>
+        </div>
+        {% else %}
+        <p style="color:var(--muted2);font-size:14px;padding:40px 0;text-align:center;">Henüz fiş eklenmedi. İlk fişinizi yükleyin!</p>
+        {% endif %}
+      </div>
+      <div class="panel">
+        <div class="panel-title"><span class="ptag"><i class="bi bi-clock-history"></i></span> Son İşlemler</div>
+        {% if son_fisler %}
+        <table class="recent-table">
+          <thead><tr><th>Mağaza</th><th>Kategori</th><th style="text-align:right">Tutar</th></tr></thead>
+          <tbody>
+            {% for f in son_fisler %}
+            <tr>
+              <td style="font-weight:600">{{ f['magaza'] }}</td>
+              <td><span class="cat-badge">{{ f['kategori'] }}</span></td>
+              <td style="font-weight:700;color:#818cf8">{{ f['toplam'] }} TL</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <a href="/receipts" style="display:block;text-align:center;margin-top:16px;color:var(--accent);font-size:13px;font-weight:600;text-decoration:none;">Tümünü Gör →</a>
+        {% else %}
+        <p style="color:var(--muted2);font-size:14px;text-align:center;padding:30px 0;">Henüz fiş yok.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    
+    {% if analiz or ai_yorum %}
+    <div class="ai-result-box">
+      <div class="ai-result-header">
+        <h2><i class="bi bi-cpu"></i> Son Fiş Analizi</h2>
+        <a href="/clear_dashboard" class="clear-btn" onclick="return confirm('Analizi temizleyelim mi?')">🧹 Temizle</a>
+      </div>
+      {% if analiz %}
+      <div class="summary-grid" style="margin-bottom:20px;">
+        <div class="summary-item"><div class="s-label"><i class="bi bi-calendar-event"></i> Tarih</div><div class="s-value">{{ analiz.get('tarih','—') }}</div></div>
+        <div class="summary-item"><div class="s-label">🏪 Mağaza</div><div class="s-value">{{ analiz.get('magaza','—') }}</div></div>
+        <div class="summary-item"><div class="s-label"><i class="bi bi-cash"></i> Toplam</div><div class="s-value" style="color:#818cf8">{{ analiz.get('toplam','—') }} TL</div></div>
+        <div class="summary-item"><div class="s-label"><i class="bi bi-file-earmark-text"></i> KDV</div><div class="s-value">{{ analiz.get('kdv','—') }} TL — {{ analiz.get('kdv_orani','—') }}</div></div>
+        <div class="summary-item"><div class="s-label">🛒 Kategori</div><div class="s-value">{{ analiz.get('kategori','—') }}</div></div>
+        <div class="summary-item"><div class="s-label"><i class="bi bi-file-text"></i> Belge Tipi</div><div class="s-value">{{ analiz.get('belge_tipi','—').title() }}</div></div>
+      </div>
+      {% endif %}
+      <div class="ai-grid">
+        {% if ai_yorum %}
+        <div>
+          <p style="font-size:12px;font-weight:700;color:var(--accent);letter-spacing:1px;margin-bottom:10px;">AI DEĞERLENDİRMESİ</p>
+          <div class="ai-box">{{ ai_yorum | safe }}</div>
+        </div>
+        {% endif %}
+        {% if analiz %}
+        <div>
+          <p style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:10px;">FİŞ GÖRÜNÜMÜ</p>
+          <div class="fis-container" id="fisContainer">
+            <div class="fis-paper">
+              <div class="fis-header">
+                <h3>{{ analiz.magaza }}</h3>
+                <p>
+                  {% if analiz.tarih and analiz.tarih != 'Bulunamadı' %}{{ analiz.tarih }}{% endif %}
+                  {% if analiz.saat and analiz.saat != '' %} {{ analiz.saat }}{% endif %}
+                </p>
+              </div>
+              <div class="fis-body">
+                <table>
+                  <thead><tr><th>Ürün</th><th class="text-right">Fiyat</th></tr></thead>
+                  <tbody>
+                    {% for u in analiz.get('urunler', []) %}
+                    <tr><td>{{ u.ad }}</td><td class="text-right">{{ u.fiyat }} TL</td></tr>
+                    {% endfor %}
+                  </tbody>
+                  <tfoot>
+                    <tr><td><strong>Toplam</strong></td><td class="text-right"><strong>{{ analiz.toplam }} TL</strong></td></tr>
+                    <tr><td>KDV ({{ analiz.kdv_orani }})</td><td class="text-right">{{ analiz.kdv }} TL</td></tr>
+                  </tfoot>
+                </table>
+              </div>
+              <div class="fis-footer">
+                <p>Teşekkür ederiz!</p>
+              </div>
+            </div>
+            <button type="button" onclick="indirFis()" class="btn btn-primary btn-sm" style="margin-top: 12px;">📥 JPG İndir</button>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+</div>
+
+<script>
+window.addEventListener('load', function() {
+  window.scrollTo(0, 0);
+});
+
+const zone = document.getElementById('dropZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => {
+  e.preventDefault(); zone.classList.remove('drag-over');
+  const files = e.dataTransfer.files;
+  if (files.length) {
+    const input = document.getElementById('receiptInput');
+    const dt = new DataTransfer();
+    dt.items.add(files[0]);
+    input.files = dt.files;
+    fileSelected(input);
+  }
+});
+
+function fileSelected(input) {
+  const label = document.getElementById('fileLabel');
+  const btn = document.getElementById('scanBtn');
+  if (input.files && input.files[0]) {
+    label.textContent = '✅ Seçildi: ' + input.files[0].name;
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  }
+}
+
+function indirFis() {
+  const element = document.getElementById('fisContainer');
+  html2canvas(element.querySelector('.fis-paper'), {
+    backgroundColor: '#ffffff',
+    scale: 2
+  }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = 'fis_' + new Date().getTime() + '.jpg';
+    link.href = canvas.toDataURL('image/jpeg', 0.9);
+    link.click();
+  });
+}
+
+{% if kat_verileri %}
+const ctx = document.getElementById('katChart').getContext('2d');
+new Chart(ctx, {
+  type: 'doughnut',
+  data: {
+    labels: [{% for k in kat_verileri %}'{{ k[0] }}',{% endfor %}],
+    datasets: [{
+      data: [{% for k in kat_verileri %}{{ k[2] }},{% endfor %}],
+      backgroundColor: ['#5b45fa','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316','#a3e635','#64748b','#6366f1','#0ea5e9','#84cc16'],
+      borderWidth: 0,
+      hoverOffset: 8
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          color: '#94a3b8',
+          font: { size: 11 },
+          padding: 8,
+          boxWidth: 10
+        },
+        maxHeight: 80
+      }
+    },
+    cutout: '60%'
+  }
+});
+{% endif %}
+</script>
+<script src="/static/js/theme.js"></script>
+</body>
+</html>

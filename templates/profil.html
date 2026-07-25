@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Profil – AkıllıCüzdan</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+  .profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  .profile-avatar-section{text-align:center;padding:40px 20px;}
+  .avatar-big{width:90px;height:90px;border-radius:50%;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;
+    font-size:40px;font-weight:800;color:#fff;margin:0 auto 16px;}
+  .user-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;}
+  .user-stat{background:rgba(255,255,255,.03);border-radius:12px;padding:16px;text-align:center;}
+  .stat-num{font-size:22px;font-weight:800;color:#fff;}
+  .stat-lbl{font-size:11px;color:var(--muted);margin-top:4px;}
+
+  .section-mini{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+    color:var(--accent);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+  .danger-zone{margin-top:24px;padding:24px;background:rgba(239,68,68,.05);
+    border:1px solid rgba(239,68,68,.2);border-radius:20px;text-align:center;}
+  .danger-zone h3{font-size:16px;color:#fca5a5;margin-bottom:8px;}
+  .danger-zone p{font-size:13px;color:var(--muted2);margin-bottom:16px;}
+  .btn-delete{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.3);
+    padding:12px 28px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;
+    transition:.2s;font-family:'Inter',sans-serif;}
+  .btn-delete:hover{background:rgba(239,68,68,.25);}
+
+  @media(max-width:900px){
+    .profile-grid{grid-template-columns:1fr;}
+  }
+</style>
+<script>
+(function(){
+  try {
+    var saved = localStorage.getItem('akillicuzdan-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+  } catch(e) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+</script>
+<link rel="stylesheet" href="/static/css/theme.css">
+</head>
+<body>
+<div class="app-layout">
+{% from 'layout.html' import sidebar, flash_messages %}
+{{ sidebar('profil') }}
+
+<div class="main">
+  <div class="main-inner">
+
+    <div class="page-header">
+      <h1 class="page-title">Profil </h1>
+      <p class="page-desc">Hesap bilgilerini ve şifreni güncelle.</p>
+    </div>
+
+    {{ flash_messages() }}
+
+    <div class="profile-grid">
+
+    
+      <div>
+        <div class="panel profile-avatar-section">
+          <div class="avatar-big">{{ user['ad'][0].upper() }}</div>
+          <h3 style="font-size:20px;">{{ user['ad'] }}</h3>
+          <p style="color:var(--muted);font-size:14px;">{{ user['email'] }}</p>
+          <div class="user-stats">
+            <div class="user-stat">
+              <div class="stat-num">{{ fis_sayisi }}</div>
+              <div class="stat-lbl">Toplam Fiş</div>
+            </div>
+            <div class="user-stat">
+              <div class="stat-num">{{ toplam_harc }} TL</div>
+              <div class="stat-lbl">Toplam Harcama</div>
+            </div>
+          </div>
+          <p style="font-size:12px;color:var(--muted);margin-top:16px;">Üyelik: {{ uye_tarihi[:10] if uye_tarihi else '—' }}</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel" style="margin-bottom:24px;">
+          <div class="panel-title"> Bilgileri Güncelle</div>
+          <form method="POST">
+            <input type="hidden" name="aksiyon" value="bilgi">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Ad Soyad</label>
+                <input class="form-input" type="text" name="ad" value="{{ user['ad'] }}" required>
+              </div>
+              <div class="form-group">
+                <label>E-posta</label>
+                <input class="form-input" type="email" name="email" value="{{ user['email'] }}" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Telefon</label>
+                <input class="form-input" type="tel" name="telefon" value="{{ user['telefon'] }}">
+              </div>
+              <div class="form-group">
+                <label>Doğum Tarihi</label>
+                <input class="form-input" type="date" name="dogum_tarihi" value="{{ user['dogum_tarihi'] }}">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Meslek</label>
+                <input class="form-input" type="text" name="meslek" value="{{ user['meslek'] }}">
+              </div>
+              <div class="form-group">
+                <label>Şehir</label>
+                <input class="form-input" type="text" name="sehir" value="{{ user['sehir'] }}">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">💾 Bilgileri Güncelle</button>
+          </form>
+        </div>
+
+        <div class="panel" style="margin-bottom:24px;">
+          <div class="panel-title"> Şifre Değiştir</div>
+          <form method="POST">
+            <input type="hidden" name="aksiyon" value="sifre">
+            <div class="form-group">
+              <label>Mevcut Şifre</label>
+              <input class="form-input" type="password" name="old_password" required>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Yeni Şifre</label>
+                <input class="form-input" type="password" name="new_password" required>
+              </div>
+              <div class="form-group">
+                <label>Yeni Şifre Tekrar</label>
+                <input class="form-input" type="password" name="new_password2" required>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">🔒 Şifreyi Güncelle</button>
+          </form>
+        </div>
+
+      
+        <div class="danger-zone">
+          <h3>⚠️ Hesabı Sil</h3>
+          <p>Bu işlem geri alınamaz. Tüm fişleriniz, gelir kayıtlarınız, abonelikleriniz ve sohbet geçmişiniz kalıcı olarak silinecektir.</p>
+          <form method="POST" action="/profil/sil" onsubmit="return confirm('Hesabınızı ve tüm verilerinizi silmek istediğinize emin misiniz?\n\nBu işlem GERİ ALINAMAZ!')">
+            <button type="submit" class="btn-delete">🗑️ Hesabımı Sil</button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+</div>
+<script src="/static/js/theme.js"></script>
+</body>
+</html>

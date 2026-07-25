@@ -1,0 +1,7 @@
+Flask
+openai
+python-dotenv
+pytesseract
+opencv-python
+Werkzeug
+Pillow

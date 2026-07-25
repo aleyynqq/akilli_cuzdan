@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fiş Düzenle – AkıllıCüzdan</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+  .edit-card{max-width:600px;margin:0 auto;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .form-actions{display:flex;gap:12px;margin-top:24px;}
+</style>
+<script>
+(function(){
+  try {
+    var saved = localStorage.getItem('akillicuzdan-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+  } catch(e) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+</script>
+<link rel="stylesheet" href="/static/css/theme.css">
+</head>
+<body>
+<div class="app-layout">
+{% from 'layout.html' import sidebar %}
+{{ sidebar('receipts') }}
+
+<div class="main">
+  <div class="main-inner">
+
+    <div class="page-header">
+      <h1 class="page-title">✏️ Fiş Düzenle</h1>
+      <p class="page-desc">Fiş #{{ fis['id'] }} bilgilerini güncelle.</p>
+    </div>
+
+    <div class="edit-card">
+      <div class="panel">
+        <form method="POST">
+          <div class="form-group">
+            <label>📅 Tarih</label>
+            <input class="form-input" type="text" name="tarih" value="{{ fis['tarih'] }}" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>💰 Toplam Tutar (TL)</label>
+              <input class="form-input" type="number" step="0.01" name="toplam" value="{{ fis['toplam'] }}" required>
+            </div>
+            <div class="form-group">
+              <label>🧾 KDV (TL)</label>
+              <input class="form-input" type="number" step="0.01" name="kdv" value="{{ fis['kdv'] }}">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>🏪 Mağaza</label>
+              <input class="form-input" type="text" name="magaza" value="{{ fis['magaza'] }}">
+            </div>
+            <div class="form-group">
+              <label>🛒 Kategori</label>
+              <select class="form-input" name="kategori">
+                {% for k in kategoriler %}
+                <option value="{{ k }}" {{ 'selected' if fis['kategori']==k }}>{{ k }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">💾 Kaydet</button>
+            <a href="/receipts" class="btn" style="background:rgba(255,255,255,.05);color:var(--muted2);">İptal</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+<script src="/static/js/theme.js"></script>
+</body>
+</html>

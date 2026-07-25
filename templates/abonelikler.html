@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Abonelikler – AkıllıCüzdan</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+  .sub-grid{display:grid;grid-template-columns:1fr 380px;gap:24px;}
+  .total-sub-card{background:linear-gradient(135deg,#7c3aed,#06b6d4);
+    border-radius:20px;padding:32px;color:#fff;text-align:center;margin-bottom:24px;}
+  .sub-card{background:var(--card);border:1px solid var(--border);border-radius:16px;
+    padding:20px;margin-bottom:12px;display:flex;align-items:center;gap:16px;}
+  .sub-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;
+    justify-content:center;font-size:22px;flex-shrink:0;}
+  .sub-info{flex:1;}
+  .sub-name{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;}
+  .sub-date{font-size:12px;color:var(--muted);margin-top:2px;}
+  .sub-amount{font-size:18px;font-weight:800;color:#818cf8;}
+  .sub-actions{display:flex;gap:8px;align-items:center;}
+  .sub-btn{padding:6px 14px;border-radius:8px;font-size:11px;font-weight:700;
+    cursor:pointer;border:none;font-family:'Inter',sans-serif;text-decoration:none;transition:.2s;}
+  .sub-btn-toggle{background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.2);}
+  .sub-btn-toggle.active{background:rgba(16,185,129,.1);color:#6ee7b7;border:1px solid rgba(16,185,129,.2);}
+  .sub-btn-del{background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.2);}
+  .sub-btn:hover{filter:brightness(1.2);}
+
+  @media(max-width:900px){
+    .sub-grid{grid-template-columns:1fr;}
+  }
+</style>
+<script>
+(function(){
+  try {
+    var saved = localStorage.getItem('akillicuzdan-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+  } catch(e) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+</script>
+<link rel="stylesheet" href="/static/css/theme.css">
+</head>
+<body>
+<div class="app-layout">
+{% from 'layout.html' import sidebar, flash_messages %}
+{{ sidebar('abonelikler') }}
+
+<div class="main">
+  <div class="main-inner">
+
+    <div class="page-header">
+      <h1 class="page-title">Abonelikler </h1>
+      <p class="page-desc">Tüm dijital aboneliklerini tek yerden takip et.</p>
+    </div>
+
+    {{ flash_messages() }}
+
+    <div class="sub-grid">
+      
+      <div>
+        <div class="total-sub-card">
+          <div style="font-size:13px;opacity:.8;text-transform:uppercase;letter-spacing:2px;">Aylık Toplam</div>
+          <div style="font-size:42px;font-weight:900;margin:8px 0;">{{ toplam_aylik }} TL</div>
+        </div>
+
+        {% if abonelikler %}
+        {% for a in abonelikler %}
+        <div class="sub-card" style="{{ 'opacity:.5' if not a['aktif'] }}">
+          <div class="sub-icon" style="background:{{ a['renk'] }}22;border:1px solid {{ a['renk'] }}44;">
+            📺
+          </div>
+          <div class="sub-info">
+            <div class="sub-name">
+              {{ a['ad'] }}
+              {% if not a['aktif'] %}<span style="font-size:10px;background:rgba(239,68,68,.1);color:#fca5a5;padding:2px 8px;border-radius:6px;">Pasif</span>{% endif %}
+            </div>
+            <div class="sub-date">
+              Her ayın {{ a['odeme_gunu'] }}. günü —
+              {% set kalan = a['odeme_gunu'] - bugun %}
+              {% if kalan >= 0 and kalan <= 7 %}
+              {% elif kalan < 0 %}
+              {% else %}
+              <span style="color:var(--muted);">{{ kalan }} gün var</span>
+              {% endif %}
+            </div>
+          </div>
+          <span class="sub-amount">{{ a['tutar'] }} TL</span>
+          <div class="sub-actions">
+            <a href="/abonelik/toggle/{{ a['id'] }}" class="sub-btn sub-btn-toggle {{ 'active' if a['aktif'] }}">
+              {{ '✅ Aktif' if a['aktif'] else '🔄 Pasif' }}
+            </a>
+            <a href="/abonelik/sil/{{ a['id'] }}" class="sub-btn sub-btn-del" onclick="return confirm('Bu aboneliği silmek istediğinize emin misiniz?')">🗑️</a>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">
+          <div class="emoji">📅</div>
+          <h3>Henüz Abonelik Yok</h3>
+          <p>İlk aboneliğini ekleyerek takibe başla.</p>
+        </div>
+        {% endif %}
+      </div>
+
+      
+      <div>
+        <div class="panel">
+          <div class="panel-title">➕ Abonelik Ekle</div>
+          <form method="POST" action="/abonelikler">
+            <div class="form-group">
+              <label>Abonelik Adı</label>
+              <input class="form-input" type="text" name="ad" placeholder="Netflix, Spotify..." required>
+            </div>
+            <div class="form-group">
+              <label>Aylık Tutar (TL)</label>
+              <input class="form-input" type="number" step="0.01" name="tutar" placeholder="149.99" required>
+            </div>
+            <div class="form-group">
+              <label>Ödeme Günü (Ayın kaçı)</label>
+              <input class="form-input" type="number" name="odeme_gunu" min="1" max="31" value="1" required>
+            </div>
+            <div class="form-group">
+              <label>Kategori</label>
+              <select class="form-input" name="kategori">
+                <option value="Eğlence">Eğlence</option>
+                <option value="Teknoloji">Teknoloji</option>
+                <option value="Eğitim">Eğitim</option>
+                <option value="Sağlık">Sağlık</option>
+                <option value="Diğer">Diğer</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Renk</label>
+              <input class="form-input" type="color" name="renk" value="#4f46e5" style="height:44px;padding:4px 8px;">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">➕ Abonelik Ekle</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+<script src="/static/js/theme.js"></script>
+</body>
+</html>

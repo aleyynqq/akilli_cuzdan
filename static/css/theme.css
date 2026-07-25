@@ -1,0 +1,535 @@
+
+/* AkıllıCüzdan Açık/Koyu Tema Sistemi */
+html[data-theme="light"] {
+  --bg:#f6f8fc;
+  --bg2:#eef4ff;
+  --bg3:#e8f0fb;
+  --border:#d8e2ef;
+  --border2:rgba(37,99,235,.20);
+  --accent:#4f46e5;
+  --accent2:#2563eb;
+  --accent3:#0891b2;
+  --text:#0f172a;
+  --muted:#64748b;
+  --muted2:#475569;
+  --card:#ffffff;
+  --card2:#f8fafc;
+  --success:#059669;
+  --warning:#d97706;
+  --danger:#dc2626;
+}
+
+/* Tema Butonları */
+.theme-toggle {
+  width:100%;
+  border:1px solid rgba(148,163,184,.22);
+  background:rgba(255,255,255,.05);
+  color:#cbd5e1;
+  border-radius:12px;
+  padding:10px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  font-family:'Inter',sans-serif;
+  font-weight:700;
+  font-size:13px;
+  cursor:pointer;
+  transition:.2s;
+}
+.theme-toggle:hover { background:rgba(255,255,255,.09); color:#fff; transform:translateY(-1px); }
+.theme-toggle i { font-size:16px; color:#93c5fd; }
+.theme-toggle.compact { width:auto; padding:9px 12px; border-radius:11px; }
+.theme-toggle.compact .theme-label { display:none; }
+.sidebar-theme { margin:0 0 18px; }
+.nav-theme-toggle { flex-shrink:0; }
+.auth-theme-toggle {
+  position:fixed;
+  right:22px;
+  top:22px;
+  z-index:20;
+  width:auto;
+  padding:10px 14px;
+  box-shadow:0 12px 30px rgba(0,0,0,.18);
+}
+
+/* Açık tema genel görünüm */
+html[data-theme="light"] body { background:var(--bg) !important; color:var(--text) !important; }
+html[data-theme="light"] a { color:inherit; }
+html[data-theme="light"] .main,
+html[data-theme="light"] .auth-right { background:var(--bg) !important; }
+html[data-theme="light"] .main-inner { color:var(--text); }
+
+html[data-theme="light"] .sidebar {
+  background:rgba(255,255,255,.92) !important;
+  border-right:1px solid var(--border) !important;
+  box-shadow:12px 0 35px rgba(15,23,42,.06);
+}
+html[data-theme="light"] .sidebar-user,
+html[data-theme="light"] .panel,
+html[data-theme="light"] .stat-card,
+html[data-theme="light"] .upload-zone,
+html[data-theme="light"] .filters-bar,
+html[data-theme="light"] .month-form,
+html[data-theme="light"] .budget-card,
+html[data-theme="light"] .sub-card,
+html[data-theme="light"] .income-item,
+html[data-theme="light"] .profile-card,
+html[data-theme="light"] .receipt-item,
+html[data-theme="light"] .receipt-card,
+html[data-theme="light"] .sidebar-sohbet,
+html[data-theme="light"] .chat-main,
+html[data-theme="light"] .side-card,
+html[data-theme="light"] .info-card,
+html[data-theme="light"] .verify-note,
+html[data-theme="light"] .ocr-box,
+html[data-theme="light"] .ai-box,
+html[data-theme="light"] .preview-box,
+html[data-theme="light"] .recent-card,
+html[data-theme="light"] .user-stat {
+  background:var(--card) !important;
+  border-color:var(--border) !important;
+  box-shadow:0 14px 35px rgba(15,23,42,.06);
+}
+html[data-theme="light"] .sidebar-nav a { color:#475569 !important; }
+html[data-theme="light"] .sidebar-nav a:hover { background:rgba(79,70,229,.08) !important; color:#0f172a !important; }
+html[data-theme="light"] .sidebar-nav a.active { background:rgba(79,70,229,.10) !important; color:#0f172a !important; border-color:rgba(79,70,229,.18) !important; }
+html[data-theme="light"] .sidebar-user-info strong,
+html[data-theme="light"] .sidebar-logo a,
+html[data-theme="light"] .page-title,
+html[data-theme="light"] .panel-title,
+html[data-theme="light"] .stat-value,
+html[data-theme="light"] .budget-cat,
+html[data-theme="light"] .side-title,
+html[data-theme="light"] .sub-name,
+html[data-theme="light"] .income-item strong,
+html[data-theme="light"] .profile-name,
+html[data-theme="light"] .receipt-store,
+html[data-theme="light"] .receipt-title,
+html[data-theme="light"] .detail-value,
+html[data-theme="light"] .detail-title,
+html[data-theme="light"] h1,
+html[data-theme="light"] h2,
+html[data-theme="light"] h3,
+html[data-theme="light"] h4,
+html[data-theme="light"] h5,
+html[data-theme="light"] .table td,
+html[data-theme="light"] .recent-table td,
+html[data-theme="light"] .chat-title,
+html[data-theme="light"] .message-text,
+html[data-theme="light"] .form-group label,
+html[data-theme="light"] label,
+html[data-theme="light"] .product-name,
+html[data-theme="light"] .meta-value {
+  color:#0f172a !important;
+}
+html[data-theme="light"] .page-desc,
+html[data-theme="light"] .stat-sub,
+html[data-theme="light"] .sidebar-user-info small,
+html[data-theme="light"] .detail-label,
+html[data-theme="light"] .receipt-meta,
+html[data-theme="light"] .table th,
+html[data-theme="light"] .recent-table th,
+html[data-theme="light"] .empty-text,
+html[data-theme="light"] .summary-note,
+html[data-theme="light"] .sub-date,
+html[data-theme="light"] .auth-card-header p,
+html[data-theme="light"] .brand-desc,
+html[data-theme="light"] .brand-feat,
+html[data-theme="light"] .step-text p,
+html[data-theme="light"] .terms-note,
+html[data-theme="light"] .auth-footer,
+html[data-theme="light"] .upload-desc {
+  color:#64748b !important;
+}
+
+html[data-theme="light"] .form-input,
+html[data-theme="light"] .filter-input,
+html[data-theme="light"] input,
+html[data-theme="light"] select,
+html[data-theme="light"] textarea {
+  background:#ffffff !important;
+  color:#0f172a !important;
+  border-color:var(--border) !important;
+}
+html[data-theme="light"] .form-input:focus,
+html[data-theme="light"] .filter-input:focus,
+html[data-theme="light"] input:focus,
+html[data-theme="light"] select:focus,
+html[data-theme="light"] textarea:focus {
+  border-color:var(--accent) !important;
+  box-shadow:0 0 0 4px rgba(79,70,229,.10) !important;
+}
+html[data-theme="light"] .form-input::placeholder,
+html[data-theme="light"] .filter-input::placeholder,
+html[data-theme="light"] textarea::placeholder,
+html[data-theme="light"] input::placeholder { color:#94a3b8 !important; }
+
+html[data-theme="light"] .table td,
+html[data-theme="light"] .recent-table td,
+html[data-theme="light"] .detail-row,
+html[data-theme="light"] .product-row,
+html[data-theme="light"] .sub-item,
+html[data-theme="light"] .duplicate-item { border-color:var(--border) !important; }
+html[data-theme="light"] .flash-success { background:#ecfdf5 !important; border-color:#a7f3d0 !important; color:#047857 !important; }
+html[data-theme="light"] .flash-error { background:#fef2f2 !important; border-color:#fecaca !important; color:#b91c1c !important; }
+html[data-theme="light"] .duplicate-warning { background:#fffbeb !important; border-color:#fde68a !important; color:#92400e !important; }
+html[data-theme="light"] .duplicate-warning strong { color:#b45309 !important; }
+html[data-theme="light"] .verify-note { color:#334155 !important; }
+html[data-theme="light"] .btn-danger { background:#fef2f2 !important; color:#b91c1c !important; border-color:#fecaca !important; }
+html[data-theme="light"] .btn-danger:hover { background:#fee2e2 !important; }
+
+/* Landing page */
+html[data-theme="light"] nav {
+  background:rgba(255,255,255,.90) !important;
+  border-bottom:1px solid var(--border) !important;
+  box-shadow:0 12px 30px rgba(15,23,42,.06);
+}
+html[data-theme="light"] .nav-links a,
+html[data-theme="light"] .btn-ghost { color:#475569 !important; }
+html[data-theme="light"] .nav-links a:hover,
+html[data-theme="light"] .btn-ghost:hover { color:#0f172a !important; background:rgba(79,70,229,.07) !important; }
+html[data-theme="light"] .hero,
+html[data-theme="light"] .section,
+html[data-theme="light"] footer { background:var(--bg) !important; }
+html[data-theme="light"] .hero-title,
+html[data-theme="light"] .section-title,
+html[data-theme="light"] .feature-card h3,
+html[data-theme="light"] .step-card h3 { color:#0f172a !important; }
+html[data-theme="light"] .hero-sub,
+html[data-theme="light"] .section-sub,
+html[data-theme="light"] .feature-card p,
+html[data-theme="light"] .step-card p { color:#64748b !important; }
+html[data-theme="light"] .feature-card,
+html[data-theme="light"] .step-card,
+html[data-theme="light"] .demo-card,
+html[data-theme="light"] .why-card {
+  background:#fff !important;
+  border-color:var(--border) !important;
+  box-shadow:0 16px 40px rgba(15,23,42,.07);
+}
+
+/* Auth pages */
+html[data-theme="light"] .auth-left {
+  background:linear-gradient(145deg,#eef2ff 0%,#f0fdfa 55%,#ffffff 100%) !important;
+}
+html[data-theme="light"] .auth-left::before { opacity:.18 !important; }
+html[data-theme="light"] .auth-left::after { opacity:.14 !important; }
+html[data-theme="light"] .auth-card,
+html[data-theme="light"] .auth-right { background:var(--bg) !important; }
+html[data-theme="light"] .brand-title,
+html[data-theme="light"] .brand-logo,
+html[data-theme="light"] .auth-card-header h2 { color:#0f172a !important; }
+html[data-theme="light"] .brand-feat,
+html[data-theme="light"] .brand-step,
+html[data-theme="light"] .error-box {
+  background:#fff !important;
+  border-color:var(--border) !important;
+  box-shadow:0 12px 30px rgba(15,23,42,.06);
+}
+html[data-theme="light"] .error-box { color:#b91c1c !important; background:#fef2f2 !important; border-color:#fecaca !important; }
+html[data-theme="light"] .section-mini { color:var(--accent) !important; border-color:var(--border) !important; }
+html[data-theme="light"] .theme-toggle { background:#ffffff !important; color:#334155 !important; border-color:var(--border) !important; }
+html[data-theme="light"] .theme-toggle:hover { background:#f1f5f9 !important; color:#0f172a !important; }
+html[data-theme="light"] .theme-toggle i { color:#2563eb !important; }
+
+/* Kod/OCR kutuları */
+html[data-theme="light"] pre,
+html[data-theme="light"] code,
+html[data-theme="light"] .ocr-text,
+html[data-theme="light"] .raw-ocr,
+html[data-theme="light"] .ai-text {
+  background:#f8fafc !important;
+  color:#0f172a !important;
+  border-color:var(--border) !important;
+}
+
+/* Mobil */
+@media(max-width:900px){
+  .auth-theme-toggle{right:14px;top:14px;}
+  .theme-toggle .theme-label{display:none;}
+}
+
+/* =========================================================
+   AÇIK TEMA OKUNABİLİRLİK DÜZELTMELERİ - v14
+   Bu bölüm theme.css dosyasının en altında olmalı.
+   ========================================================= */
+
+/* Genel olarak koyu temadan kalan beyaz yazıları açık temada koyulaştır */
+html[data-theme="light"] .stat-value,
+html[data-theme="light"] .summary-item .s-value,
+html[data-theme="light"] .budget-num strong,
+html[data-theme="light"] .mini-card strong,
+html[data-theme="light"] .stat-num,
+html[data-theme="light"] .profile-avatar,
+html[data-theme="light"] .sidebar-sohbet h3,
+html[data-theme="light"] .ai-budget-title,
+html[data-theme="light"] .budget-cat,
+html[data-theme="light"] .panel-title,
+html[data-theme="light"] .detail-value,
+html[data-theme="light"] .product-name,
+html[data-theme="light"] .chat-title,
+html[data-theme="light"] .receipt-store,
+html[data-theme="light"] .receipt-title,
+html[data-theme="light"] .s-value,
+html[data-theme="light"] .amount-big {
+  color:#0f172a !important;
+}
+
+/* Açıklama, label ve küçük metinler */
+html[data-theme="light"] .stat-label,
+html[data-theme="light"] .summary-item .s-label,
+html[data-theme="light"] .budget-num small,
+html[data-theme="light"] .mini-card small,
+html[data-theme="light"] .small-muted,
+html[data-theme="light"] .summary-note,
+html[data-theme="light"] .detail-label,
+html[data-theme="light"] .receipt-meta,
+html[data-theme="light"] .sub-date,
+html[data-theme="light"] .page-desc,
+html[data-theme="light"] .stat-sub,
+html[data-theme="light"] .table th,
+html[data-theme="light"] .recent-table th,
+html[data-theme="light"] small {
+  color:#64748b !important;
+}
+
+/* Bütçe sayfasında inline color:#fff kalan seçili dönem yazısı */
+html[data-theme="light"] .summary-note strong,
+html[data-theme="light"] .page-desc strong {
+  color:#0f172a !important;
+}
+
+/* Bütçe kartlarının iç kutuları */
+html[data-theme="light"] .budget-num,
+html[data-theme="light"] .summary-item,
+html[data-theme="light"] .mini-card,
+html[data-theme="light"] .suggest-item,
+html[data-theme="light"] .product-item,
+html[data-theme="light"] .sub-item {
+  background:#f8fafc !important;
+  border-color:#d8e2ef !important;
+  color:#0f172a !important;
+}
+
+/* AI bütçe yorumu kutusu */
+html[data-theme="light"] .ai-budget-box {
+  background:linear-gradient(135deg,#ffffff 0%,#f8fafc 100%) !important;
+  border:1px solid #d8e2ef !important;
+  color:#334155 !important;
+  box-shadow:0 14px 35px rgba(15,23,42,.06) !important;
+}
+
+html[data-theme="light"] .ai-budget-box * {
+  color:#334155 !important;
+}
+
+html[data-theme="light"] .ai-budget-box .ai-budget-title,
+html[data-theme="light"] .ai-budget-title,
+html[data-theme="light"] .ai-budget-title i {
+  color:#0f172a !important;
+}
+
+/* AI analizi / AI yorumu kutuları */
+html[data-theme="light"] .ai-box {
+  background:#ffffff !important;
+  color:#334155 !important;
+  border:1px solid #d8e2ef !important;
+  box-shadow:0 12px 30px rgba(15,23,42,.05) !important;
+}
+
+html[data-theme="light"] .ai-box p,
+html[data-theme="light"] .ai-box div,
+html[data-theme="light"] .ai-box li,
+html[data-theme="light"] .ai-box span,
+html[data-theme="light"] .ai-box em,
+html[data-theme="light"] .ai-box b,
+html[data-theme="light"] .ai-box strong {
+  color:#334155 !important;
+}
+
+html[data-theme="light"] .ai-box h1,
+html[data-theme="light"] .ai-box h2,
+html[data-theme="light"] .ai-box h3,
+html[data-theme="light"] .ai-box h4,
+html[data-theme="light"] .ai-box h5,
+html[data-theme="light"] .ai-box .ai-title,
+html[data-theme="light"] .ai-box .section-title {
+  color:#0f172a !important;
+}
+
+/* AI içindeki etiket şeritleri: arka planı ve yazısı ayrı kalsın */
+html[data-theme="light"] .ai-box .ai-tag {
+  border-radius:999px !important;
+  font-weight:800 !important;
+}
+
+html[data-theme="light"] .ai-box .tag-blue {
+  background:#e0e7ff !important;
+  color:#4338ca !important;
+}
+
+html[data-theme="light"] .ai-box .tag-yellow {
+  background:#fef3c7 !important;
+  color:#b45309 !important;
+}
+
+html[data-theme="light"] .ai-box .tag-green {
+  background:#d1fae5 !important;
+  color:#047857 !important;
+}
+
+html[data-theme="light"] .ai-box .tag-purple {
+  background:#f3e8ff !important;
+  color:#7e22ce !important;
+}
+
+html[data-theme="light"] .ai-box .tag-orange {
+  background:#ffedd5 !important;
+  color:#c2410c !important;
+}
+
+html[data-theme="light"] .ai-box .tag-blue *,
+html[data-theme="light"] .ai-box .tag-yellow *,
+html[data-theme="light"] .ai-box .tag-green *,
+html[data-theme="light"] .ai-box .tag-purple *,
+html[data-theme="light"] .ai-box .tag-orange * {
+  color:inherit !important;
+}
+
+/* OCR / ham metin kutuları */
+html[data-theme="light"] .ocr-box,
+html[data-theme="light"] .raw-ocr,
+html[data-theme="light"] .ocr-text,
+html[data-theme="light"] .ham-ocr,
+html[data-theme="light"] pre,
+html[data-theme="light"] code {
+  background:#ffffff !important;
+  color:#0f172a !important;
+  border:1px solid #d8e2ef !important;
+}
+
+/* Doğrulama ekranı özel */
+html[data-theme="light"] .form-textarea {
+  background:#ffffff !important;
+  color:#0f172a !important;
+  border-color:#d8e2ef !important;
+}
+
+html[data-theme="light"] .duplicate-item {
+  background:#ffffff !important;
+  color:#334155 !important;
+  border-color:#fde68a !important;
+}
+
+html[data-theme="light"] .duplicate-item a {
+  color:#b45309 !important;
+}
+
+/* Açık temada pozitif/negatif değerler daha koyu ton olsun */
+html[data-theme="light"] [style*="#6ee7b7"],
+html[data-theme="light"] [style*="rgb(110, 231, 183)"] {
+  color:#059669 !important;
+}
+
+html[data-theme="light"] [style*="#fca5a5"],
+html[data-theme="light"] [style*="rgb(252, 165, 165)"] {
+  color:#dc2626 !important;
+}
+
+html[data-theme="light"] [style*="#818cf8"],
+html[data-theme="light"] [style*="rgb(129, 140, 248)"] {
+  color:#4f46e5 !important;
+}
+
+/* Durum rozetleri */
+html[data-theme="light"] .budget-status.safe,
+html[data-theme="light"] .sub-btn-toggle.active,
+html[data-theme="light"] .status-active {
+  background:#d1fae5 !important;
+  color:#047857 !important;
+  border-color:#a7f3d0 !important;
+}
+
+html[data-theme="light"] .budget-status.warning,
+html[data-theme="light"] .warning,
+html[data-theme="light"] .sub-days {
+  background:#fef3c7 !important;
+  color:#b45309 !important;
+  border-color:#fde68a !important;
+}
+
+html[data-theme="light"] .budget-status.danger,
+html[data-theme="light"] .danger,
+html[data-theme="light"] .sub-btn-del,
+html[data-theme="light"] .rc-btn-del,
+html[data-theme="light"] .income-del,
+html[data-theme="light"] .budget-del {
+  background:#fef2f2 !important;
+  color:#dc2626 !important;
+  border-color:#fecaca !important;
+}
+
+/* Gelir ve abonelik büyük gradient kutuları açık temada da okunur kalsın */
+html[data-theme="light"] .income-hero,
+html[data-theme="light"] .sub-hero,
+html[data-theme="light"] .hero-stat,
+html[data-theme="light"] .total-card {
+  color:#ffffff !important;
+}
+
+html[data-theme="light"] .income-hero *,
+html[data-theme="light"] .sub-hero *,
+html[data-theme="light"] .hero-stat *,
+html[data-theme="light"] .total-card * {
+  color:#ffffff !important;
+}
+
+/* Chat ekranı */
+html[data-theme="light"] .msg-bubble,
+html[data-theme="light"] .chat-msg.assistant .msg-bubble {
+  background:#ffffff !important;
+  color:#334155 !important;
+  border:1px solid #d8e2ef !important;
+}
+
+html[data-theme="light"] .chat-msg.assistant .msg-bubble * {
+  color:#334155 !important;
+}
+
+html[data-theme="light"] .chat-msg.user .msg-bubble,
+html[data-theme="light"] .chat-msg.user .msg-bubble * {
+  background:var(--accent) !important;
+  color:#ffffff !important;
+  border-color:var(--accent) !important;
+}
+
+html[data-theme="light"] .oturum-item {
+  color:#475569 !important;
+}
+
+html[data-theme="light"] .oturum-item:hover,
+html[data-theme="light"] .oturum-item.active {
+  background:rgba(79,70,229,.10) !important;
+  color:#0f172a !important;
+  border-color:rgba(79,70,229,.18) !important;
+}
+
+/* Butonların yazıları beyaz kalmalı */
+html[data-theme="light"] .btn-primary,
+html[data-theme="light"] .filter-btn,
+html[data-theme="light"] .chat-send,
+html[data-theme="light"] .auth-submit,
+html[data-theme="light"] .yeni-sohbet-btn,
+html[data-theme="light"] button[type="submit"] {
+  color:#ffffff !important;
+}
+
+html[data-theme="light"] .btn-primary *,
+html[data-theme="light"] .filter-btn *,
+html[data-theme="light"] .chat-send *,
+html[data-theme="light"] .auth-submit *,
+html[data-theme="light"] .yeni-sohbet-btn *,
+html[data-theme="light"] button[type="submit"] * {
+  color:#ffffff !important;
+}

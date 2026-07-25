@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Raporlar – AkıllıCüzdan</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:28px;}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:18px;
+    padding:24px;transition:.3s;}
+  .stat-card:hover{border-color:var(--border2);}
+  .stat-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.5px;margin-bottom:10px;}
+  .stat-value{font-size:28px;font-weight:800;color:#fff;line-height:1;}
+  .stat-sub{font-size:12px;color:var(--muted2);margin-top:4px;}
+
+  .report-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;}
+  .full-width{grid-column:1/-1;}
+
+  .skor-circle{width:120px;height:120px;border-radius:50%;
+    background:conic-gradient(var(--accent) calc(var(--skor) * 1%), rgba(255,255,255,.05) 0);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+  .skor-inner{width:90px;height:90px;border-radius:50%;background:var(--card);
+    display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:800;}
+
+  .yorum-list{display:flex;flex-direction:column;gap:10px;}
+  .yorum-item{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--muted2);
+    padding:12px;background:rgba(255,255,255,.03);border-radius:10px;}
+
+  .table{width:100%;border-collapse:collapse;font-size:13px;}
+  .table th{text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;padding-bottom:10px;}
+  .table td{padding:10px 0;border-top:1px solid var(--border);}
+
+  @media(max-width:900px){
+    .report-grid{grid-template-columns:1fr;}
+    .stats-row{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+<script>
+(function(){
+  try {
+    var saved = localStorage.getItem('akillicuzdan-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+  } catch(e) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+</script>
+<link rel="stylesheet" href="/static/css/theme.css">
+</head>
+<body>
+<div class="app-layout">
+{% from 'layout.html' import sidebar, flash_messages %}
+{{ sidebar('reports') }}
+
+<div class="main">
+  <div class="main-inner">
+
+    <div class="page-header">
+      <h1 class="page-title">Finansal Raporlar </h1>
+      <p class="page-desc">Detaylı harcama analizlerin ve finansal sağlık durumun.</p>
+    </div>
+
+    {{ flash_messages() }}
+
+  
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">📄 Toplam Fiş</div>
+        <div class="stat-value">{{ toplam_fis }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">💰 Toplam Harcama</div>
+        <div class="stat-value">{{ toplam_harcama }} TL</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">📊 Ortalama Fiş</div>
+        <div class="stat-value">{{ ortalama }} TL</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">📈 En Yüksek Fiş</div>
+        <div class="stat-value">{{ en_buyuk }} TL</div>
+      </div>
+    </div>
+
+  
+    <div class="report-grid">
+
+  
+      <div class="panel" style="text-align:center;">
+        <div class="panel-title" style="justify-content:center;"> Finansal Sağlık Skoru</div>
+        <div class="skor-circle" style="--skor:{{ skor }};">
+          <div class="skor-inner">{{ skor }}</div>
+        </div>
+        <p style="color:var(--muted2);font-size:14px;">
+          {% if skor >= 80 %}Harika gidiyorsun! 🎉{% elif skor >= 60 %}İyi durumdasın 👍{% elif skor >= 40 %}Dikkat etmeli ⚠️{% else %}Önlem al 🔴{% endif %}
+        </p>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;">Gelir: {{ toplam_gelir }} TL / Gider: {{ toplam_harcama }} TL</p>
+      </div>
+
+  
+      <div class="panel">
+        <div class="panel-title"> Kategori Dağılımı</div>
+        {% if kat_harcama %}
+        <canvas id="katChart" height="200"></canvas>
+        {% else %}
+        <p style="color:var(--muted2);text-align:center;padding:30px;">Henüz veri yok.</p>
+        {% endif %}
+      </div>
+
+      
+      <div class="panel">
+        <div class="panel-title">💡 Öneriler & Yorumlar</div>
+        <div class="yorum-list">
+          {% for y in yorumlar %}
+          <div class="yorum-item">💬 {{ y }}</div>
+          {% endfor %}
+          {% if tasarruf_tutari > 0 %}
+          <div class="yorum-item" style="color:#34d399;">💰 {{ kategori_adi }} kategorisinde yaklaşık <strong>{{ tasarruf_tutari }} TL</strong> tasarruf potansiyelin var (%{{ oran_yuzde }}).</div>
+          {% endif %}
+        </div>
+      </div>
+
+
+      <div class="panel">
+        <div class="panel-title">🏪 En Sık Alışveriş</div>
+        {% if magazalar %}
+        <table class="table">
+          <thead><tr><th>Mağaza</th><th>İşlem</th><th>Tutar</th></tr></thead>
+          <tbody>
+            {% for m in magazalar %}
+            <tr>
+              <td style="font-weight:600;">{{ m['magaza'] }}</td>
+              <td>{{ m['sayi'] }} kez</td>
+              <td style="font-weight:700;color:#818cf8;">{{ m['tutar'] }} TL</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p style="color:var(--muted2);text-align:center;padding:30px;">Henüz veri yok.</p>
+        {% endif %}
+      </div>
+
+    
+       <div class="panel full
+      <div class="panel full-width">
+        <div class="panel-title">💰 Gelir-Gider Karşılaştırması</div>
+        {% if aylik_gelir_gider %}
+        <canvas id="gelirGiderChart" height="200"></canvas>
+        {% else %}
+        <p style="color:var(--muted2);text-align:center;padding:30px;">Henüz veri yok.</p>
+        {% endif %}
+      </div>
+
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+{% if kat_harcama %}
+new Chart(document.getElementById('katChart'), {
+  type: 'doughnut',
+  data: {
+    labels: [{% for k in kat_harcama %}'{{ k[0] }}',{% endfor %}],
+    datasets: [{
+      data: [{% for k in kat_harcama %}{{ k[2] }},{% endfor %}],
+      backgroundColor: ['#5b45fa','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#14b8a6','#f97316'],
+      borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11 }, padding: 12 } } }
+  }
+});
+{% endif %}
+
+{% if aylik_gelir_gider %}
+const gelirGiderCtx = document.getElementById('gelirGiderChart').getContext('2d');
+new Chart(gelirGiderCtx, {
+  type: 'bar',
+  data: {
+    labels: [{% for d in aylik_gelir_gider %}'{{ d.ay }}',{% endfor %}],
+    datasets: [
+      {
+        label: 'Gelir',
+        data: [{% for d in aylik_gelir_gider %}{{ d.gelir }},{% endfor %}],
+        backgroundColor: 'rgba(16,185,129,.5)',
+        borderColor: '#10b981',
+        borderWidth: 1,
+        borderRadius: 6
+      },
+      {
+        label: 'Gider',
+        data: [{% for d in aylik_gelir_gider %}{{ d.gider }},{% endfor %}],
+        backgroundColor: 'rgba(239,68,68,.5)',
+        borderColor: '#ef4444',
+        borderWidth: 1,
+        borderRadius: 6
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { labels: { color: '#94a3b8', font: { size: 12 } } }
+    },
+    scales: {
+      y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,.05)' } },
+      x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+    }
+  }
+});
+{% endif %}
+</script>
+<script src="/static/js/theme.js"></script>
+</body>
+</html>

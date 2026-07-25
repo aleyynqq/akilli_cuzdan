@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fiş Geçmişi – AkıllıCüzdan</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+  .filters-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;
+    background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;}
+  .filter-input{background:#080f1e;border:1.5px solid var(--border);border-radius:10px;
+    padding:10px 14px;color:var(--text);font-size:13px;font-family:'Inter',sans-serif;
+    transition:.2s;min-width:160px;}
+  .filter-input:focus{outline:none;border-color:var(--accent);}
+  .filter-input::placeholder{color:var(--muted);}
+  .filter-btn{background:var(--accent);color:#fff;border:none;padding:10px 20px;
+    border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;transition:.2s;
+    font-family:'Inter',sans-serif;}
+  .filter-btn:hover{background:#4a34e0;}
+  .filter-reset{background:transparent;color:var(--muted2);border:1.5px solid var(--border);
+    padding:10px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
+    font-family:'Inter',sans-serif;}
+
+  .results-info{color:var(--muted2);font-size:13px;margin-bottom:16px;}
+
+  .receipt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px;}
+  .receipt-card{background:var(--card);border:1px solid var(--border);border-radius:18px;
+    padding:22px;transition:.3s;position:relative;}
+  .receipt-card:hover{border-color:var(--border2);transform:translateY(-2px);
+    box-shadow:0 12px 32px rgba(0,0,0,.2);}
+  .rc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+  .rc-store{font-size:17px;font-weight:700;}
+  .rc-id{font-size:11px;color:var(--muted);background:rgba(255,255,255,.05);
+    padding:4px 9px;border-radius:6px;}
+  .rc-amount{font-size:26px;font-weight:800;color:#818cf8;margin-bottom:12px;}
+  .rc-amount small{font-size:14px;color:var(--muted);font-weight:400;}
+  .rc-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+  .rc-meta-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted2);
+    background:rgba(255,255,255,.04);padding:5px 10px;border-radius:8px;}
+  .rc-actions{display:flex;gap:8px;}
+  .rc-btn{flex:1;text-align:center;padding:9px;border-radius:10px;font-size:12px;
+    font-weight:700;cursor:pointer;border:none;font-family:'Inter',sans-serif;
+    text-decoration:none;transition:.2s;display:inline-flex;align-items:center;
+    justify-content:center;gap:5px;}
+  .rc-btn-view{background:rgba(91,69,250,.1);color:#818cf8;border:1px solid rgba(91,69,250,.2);}
+  .rc-btn-view:hover{background:rgba(91,69,250,.2);}
+  .rc-btn-edit{background:rgba(16,185,129,.08);color:#6ee7b7;border:1px solid rgba(16,185,129,.15);}
+  .rc-btn-edit:hover{background:rgba(16,185,129,.15);}
+  .rc-btn-del{background:rgba(239,68,68,.08);color:#fca5a5;border:1px solid rgba(239,68,68,.15);}
+  .rc-btn-del:hover{background:rgba(239,68,68,.15);}
+  .rc-edited{position:absolute;top:14px;right:14px;font-size:10px;color:#34d399;
+    background:rgba(16,185,129,.1);padding:3px 8px;border-radius:6px;}
+
+  .empty-state{text-align:center;padding:80px 0;color:var(--muted2);}
+  .empty-state .emoji{font-size:60px;margin-bottom:16px;}
+  .empty-state h3{font-size:20px;font-weight:700;margin-bottom:8px;color:var(--text);}
+
+  .danger-zone{text-align:center;margin-top:32px;padding-top:24px;border-top:1px solid var(--border);}
+</style>
+<script>
+(function(){
+  try {
+    var saved = localStorage.getItem('akillicuzdan-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+  } catch(e) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+</script>
+<link rel="stylesheet" href="/static/css/theme.css">
+</head>
+<body>
+<div class="app-layout">
+{% from 'layout.html' import sidebar, flash_messages %}
+{{ sidebar('receipts') }}
+
+<div class="main">
+  <div class="main-inner">
+
+    <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+      <div>
+        <h1 class="page-title">Fiş Geçmişi </h1>
+        <p class="page-desc">Yüklediğin tüm fiş ve faturaları filtrele, düzenle.</p>
+      </div>
+      <div style="display:flex;gap:12px;">
+        <a href="/dashboard" class="btn btn-primary">+ Yeni Fiş Yükle</a>
+        <a href="/manuel-ekle" class="btn btn-primary" style="background:#06b6d4;">📝 Manuel Ekle</a>
+      </div>
+    </div>
+
+    {{ flash_messages() }}
+
+    <!-- FİLTRELER -->
+    <form method="GET" class="filters-bar">
+      <input class="filter-input" type="text" name="magaza" placeholder="🔍 Mağaza ara..."
+        value="{{ req_args.get('magaza','') }}">
+      <select class="filter-input" name="kategori">
+        <option value="">Tüm Kategoriler</option>
+        {% for k in kategoriler %}
+        <option value="{{ k }}" {{ 'selected' if req_args.get('kategori')==k }}>{{ k }}</option>
+        {% endfor %}
+      </select>
+      <select class="filter-input" name="belge">
+        <option value="">Tüm Belgeler</option>
+        <option value="fis" {{ 'selected' if req_args.get('belge')=='fis' }}>Fiş</option>
+        <option value="fatura" {{ 'selected' if req_args.get('belge')=='fatura' }}>Fatura</option>
+      </select>
+      <input class="filter-input" type="date" name="tarih" value="{{ req_args.get('tarih','') }}">
+      <select class="filter-input" name="siralama" style="min-width:160px;">
+        <option value="yeni" {{ 'selected' if req_args.get('siralama')=='yeni' }}>En Yeni</option>
+        <option value="eski" {{ 'selected' if req_args.get('siralama')=='eski' }}>En Eski</option>
+        <option value="tutar_yuksek" {{ 'selected' if req_args.get('siralama')=='tutar_yuksek' }}>En Yüksek Tutar</option>
+        <option value="tutar_dusuk" {{ 'selected' if req_args.get('siralama')=='tutar_dusuk' }}>En Düşük Tutar</option>
+      </select>
+      <button type="submit" class="filter-btn">🔎 Ara</button>
+      <a href="/receipts" class="filter-reset">↺ Sıfırla</a>
+    </form>
+
+    <p class="results-info">{{ fisler | length }} sonuç bulundu</p>
+
+    {% if fisler %}
+    <div class="receipt-grid">
+      {% for f in fisler %}
+      <div class="receipt-card">
+        {% if f['duzeltilmis'] %}<span class="rc-edited">✏️ Düzenlendi</span>{% endif %}
+        <div class="rc-header">
+          <div class="rc-store">{{ f['magaza'] }}</div>
+          <div class="rc-id">#{{ f['id'] }}</div>
+        </div>
+        <div class="rc-amount">{{ f['toplam'] }} <small>TL</small></div>
+        <div class="rc-meta">
+          <div class="rc-meta-item">📅 {{ f['tarih'] }}</div>
+          <div class="rc-meta-item">🏷️ {{ f['kategori'] }}</div>
+          <div class="rc-meta-item">🧾 KDV: {{ f['kdv'] }} TL</div>
+          <div class="rc-meta-item">📄 {{ f['belge_tipi'].title() }}</div>
+        </div>
+        <div class="rc-actions">
+          <a href="/receipt/{{ f['id'] }}" class="rc-btn rc-btn-view">👁️ Detay</a>
+          <a href="/edit/{{ f['id'] }}" class="rc-btn rc-btn-edit">✏️ Düzenle</a>
+          <a href="/delete/{{ f['id'] }}" class="rc-btn rc-btn-del"
+             onclick="return confirm('Bu fişi silmek istediğinize emin misiniz?')">🗑️ Sil</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="emoji">📭</div>
+      <h3>Sonuç Bulunamadı</h3>
+      <p>Arama kriterlerinize uygun fiş bulunamadı.<br>Filtreleri değiştirerek tekrar deneyin.</p>
+      <a href="/receipts" style="color:var(--accent);font-weight:600;margin-top:16px;display:inline-block;">Tümünü Göster →</a>
+    </div>
+    {% endif %}
+
+    <div class="danger-zone">
+      <a href="/delete_all" class="btn btn-danger"
+         onclick="return confirm('Tüm fiş geçmişini silmek istediğinize emin misiniz? Bu işlem geri alınamaz!')">
+        🗑️ Tüm Geçmişi Temizle
+      </a>
+    </div>
+
+  </div>
+</div>
+</div>
+<script src="/static/js/theme.js"></script>
+</body>
+</html>

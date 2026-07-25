@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gelir Takibi – AkıllıCüzdan</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+  .income-grid{display:grid;grid-template-columns:1fr 380px;gap:24px;}
+  .total-card{background:linear-gradient(135deg,var(--accent),var(--accent2));
+    border-radius:20px;padding:32px;color:#fff;text-align:center;margin-bottom:24px;}
+  .total-amount{font-size:42px;font-weight:900;margin:8px 0;}
+  .total-label{font-size:13px;opacity:.8;text-transform:uppercase;letter-spacing:2px;}
+
+  .income-list{display:flex;flex-direction:column;gap:12px;}
+  .income-item{display:flex;align-items:center;justify-content:space-between;
+    background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 20px;}
+  .income-item .ii-left{display:flex;align-items:center;gap:12px;}
+  .income-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;
+    justify-content:center;font-size:18px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.2);}
+  .income-info strong{display:block;font-size:14px;}
+  .income-info span{font-size:12px;color:var(--muted);}
+  .income-amount{font-size:20px;font-weight:800;color:#6ee7b7;}
+  .income-del{color:#fca5a5;text-decoration:none;font-size:12px;font-weight:600;
+    padding:6px 12px;border-radius:8px;background:rgba(239,68,68,.1);transition:.2s;}
+  .income-del:hover{background:rgba(239,68,68,.2);}
+
+  @media(max-width:900px){
+    .income-grid{grid-template-columns:1fr;}
+  }
+</style>
+<script>
+(function(){
+  try {
+    var saved = localStorage.getItem('akillicuzdan-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+  } catch(e) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+</script>
+<link rel="stylesheet" href="/static/css/theme.css">
+</head>
+<body>
+<div class="app-layout">
+{% from 'layout.html' import sidebar, flash_messages %}
+{{ sidebar('gelir') }}
+
+<div class="main">
+  <div class="main-inner">
+
+    <div class="page-header">
+      <h1 class="page-title">Gelir Takibi </h1>
+      <p class="page-desc">Maaş, ek gelir ve diğer tüm gelirlerini buradan yönet.</p>
+    </div>
+
+    {{ flash_messages() }}
+
+    <div class="income-grid">
+      
+      <div>
+        <div class="total-card">
+          <div class="total-label">Toplam Gelir</div>
+          <div class="total-amount">{{ toplam }} TL</div>
+        </div>
+
+        {% if gelirler %}
+        <div class="income-list">
+          {% for g in gelirler %}
+          <div class="income-item">
+            <div class="ii-left">
+              <div class="income-icon">
+                {% if 'maaş' in g['tip'].lower() %}💼{% elif 'burs' in g['tip'].lower() %}🎓{% elif 'kira' in g['tip'].lower() %}🏠{% else %}💵{% endif %}
+              </div>
+              <div class="income-info">
+                <strong>{{ g['tip'] }}</strong>
+                <span>{{ g['tarih'] }}{% if g['tekrarlayan'] %} • Her ayın {{ g['tekrar_gunu'] }}. günü{% endif %} — {{ g['aciklama'] }}</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;">
+              <span class="income-amount">{{ g['tutar'] }} TL</span>
+              <a href="/gelir/sil/{{ g['id'] }}" class="income-del" onclick="return confirm('Bu geliri silmek istediğinize emin misiniz?')">🗑️</a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <div class="emoji">💸</div>
+          <h3>Henüz Gelir Yok</h3>
+          <p>İlk gelirini ekleyerek takibe başla.</p>
+        </div>
+        {% endif %}
+      </div>
+
+
+      <div>
+        <div class="panel">
+          <div class="panel-title">➕ Yeni Gelir Ekle</div>
+          <form method="POST" action="/gelir">
+            <div class="form-group">
+              <label>Gelir Türü</label>
+              <select class="form-input" name="tip" required>
+                <option value="Maaş">Maaş</option>
+                <option value="Burs">Burs</option>
+                <option value="Ek Gelir">Ek Gelir</option>
+                <option value="Freelance">Freelance</option>
+                <option value="Kira Geliri">Kira Geliri</option>
+                <option value="Diğer">Diğer</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Tutar (TL)</label>
+              <input class="form-input" type="number" step="0.01" name="tutar" placeholder="0.00" required>
+            </div>
+            <div class="form-group">
+              <label>Açıklama</label>
+              <input class="form-input" type="text" name="aciklama" placeholder="Açıklama (opsiyonel)">
+            </div>
+            <div class="form-group">
+              <label>Tarih</label>
+              <input class="form-input" type="date" name="tarih" required>
+            </div>
+            <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+              <input type="checkbox" name="tekrarlayan" id="tekrar" style="accent-color:var(--accent);width:18px;height:18px;" onchange="toggleTekrarGunu()">
+              <label for="tekrar" style="margin:0;font-size:14px;">Aylık tekrarlayan gelir</label>
+            </div>
+            <div class="form-group" id="tekrarGunuGroup" style="display:none;">
+              <label>Tekrar Günü (Ayın kaçı)</label>
+              <select class="form-input" name="tekrar_gunu">
+                {% for g in range(1, 32) %}
+                <option value="{{ g }}">{{ g }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">💰 Gelir Ekle</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<script>
+function toggleTekrarGunu() {
+  const checkbox = document.getElementById('tekrar');
+  const group = document.getElementById('tekrarGunuGroup');
+  group.style.display = checkbox.checked ? 'block' : 'none';
+}
+</script>
+<script src="/static/js/theme.js"></script>
+</body>
+</html>

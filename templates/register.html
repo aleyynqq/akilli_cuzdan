@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kayıt Ol – AkıllıCüzdan</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#04080f;--bg2:#080f1e;
+  --accent:#5b45fa;--accent2:#7c3aed;
+  --border:#1a2540;--text:#e2e8f0;--muted:#64748b;--muted2:#94a3b8;
+  --card:#0d1a2e;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;display:grid;grid-template-columns:1fr 1fr;}
+.auth-left{background:linear-gradient(145deg,#050c1a 0%,#0d1529 40%,#130d2e 100%);
+  position:relative;overflow:hidden;padding:60px;display:flex;align-items:center;}
+.auth-left::before{content:'';position:absolute;width:600px;height:600px;
+  border-radius:50%;background:var(--accent);filter:blur(180px);
+  opacity:.12;top:-200px;right:-200px;pointer-events:none;}
+.auth-left::after{content:'';position:absolute;width:400px;height:400px;
+  border-radius:50%;background:#06b6d4;filter:blur(140px);
+  opacity:.08;bottom:-150px;left:-150px;pointer-events:none;}
+.brand-content{position:relative;z-index:1;max-width:480px;}
+.brand-logo{font-size:28px;font-weight:800;margin-bottom:50px;}
+.brand-logo-img{width:38px;height:38px;border-radius:12px;object-fit:cover;filter:drop-shadow(0 8px 18px rgba(6,182,212,.18));}
+.brand-logo span{background:linear-gradient(135deg,var(--accent),#06b6d4);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.brand-title{font-size:clamp(30px,3.5vw,48px);font-weight:800;line-height:1.1;
+  margin-bottom:20px;letter-spacing:-1px;}
+.brand-title em{font-style:normal;
+  background:linear-gradient(135deg,#a78bfa,#06b6d4);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.brand-desc{color:#94a3b8;font-size:15px;line-height:1.7;margin-bottom:40px;}
+.brand-steps{display:flex;flex-direction:column;gap:16px;}
+.brand-step{display:flex;align-items:flex-start;gap:14px;}
+.step-circle{width:36px;height:36px;border-radius:50%;
+  background:rgba(91,69,250,.15);border:1px solid rgba(91,69,250,.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:#a78bfa;flex-shrink:0;}
+.step-text h4{font-size:14px;font-weight:600;margin-bottom:2px;}
+.step-text p{font-size:13px;color:var(--muted2);}
+.auth-right{background:var(--bg);display:flex;justify-content:center;
+  align-items:flex-start;padding:40px;overflow-y:auto;}
+.auth-card{width:100%;max-width:500px;padding-top:10px;}
+.auth-card-header{margin-bottom:28px;}
+.auth-card-header h2{font-size:26px;font-weight:800;margin-bottom:8px;}
+.auth-card-header p{color:var(--muted2);font-size:14px;}
+.error-box{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
+  color:#fca5a5;padding:14px;border-radius:12px;margin-bottom:20px;
+  font-size:14px;display:flex;align-items:center;gap:10px;}
+.section-mini{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--accent);margin-bottom:14px;margin-top:22px;padding-bottom:8px;
+  border-bottom:1px solid var(--border);}
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:12px;font-weight:600;
+  color:#cbd5e1;margin-bottom:6px;}
+.form-input{width:100%;padding:13px 16px;background:#080f1e;
+  border:1.5px solid var(--border);border-radius:12px;color:var(--text);
+  font-size:14px;font-family:'Inter',sans-serif;transition:.2s;}
+.form-input:focus{outline:none;border-color:var(--accent);
+  background:#09101f;box-shadow:0 0 0 4px rgba(91,69,250,.12);}
+.form-input::placeholder{color:var(--muted);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.optional-tag{font-size:11px;color:var(--muted);font-weight:400;margin-left:6px;}
+.auth-btn{width:100%;padding:15px;border-radius:12px;font-size:15px;font-weight:700;
+  cursor:pointer;transition:.25s;border:none;font-family:'Inter',sans-serif;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;margin-top:12px;}
+.auth-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(91,69,250,.35);}
+.auth-footer{text-align:center;margin-top:20px;color:var(--muted);font-size:14px;}
+.auth-footer a{color:var(--accent);text-decoration:none;font-weight:600;}
+.terms-note{font-size:12px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.5;}
+
+@media(max-width:900px){
+  body{grid-template-columns:1fr;}
+  .auth-left{display:none;}
+  .auth-right{padding:30px 20px;}
+}
+</style>
+<script>
+(function(){
+  try {
+    var saved = localStorage.getItem('akillicuzdan-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+  } catch(e) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+</script>
+<link rel="stylesheet" href="/static/css/theme.css">
+</head>
+<body>
+<button type="button" class="theme-toggle compact auth-theme-toggle" data-theme-toggle><i class="bi bi-sun"></i><span class="theme-label">Açık Tema</span></button>
+
+<div class="auth-left">
+  <div class="brand-content">
+    <div class="brand-logo"><img src="/static/img/akillicuzdan-logo.svg" class="brand-logo-img" alt="AkıllıCüzdan Logo"><span>AkıllıCüzdan</span></div>
+    <h2 class="brand-title">Finansal<br><em>Özgürlüğünüze</em><br>Adım Atın</h2>
+    <p class="brand-desc">Hesap oluşturarak kişiselleştirilmiş finans takibine başlayın. Ücretsiz, hızlı, güvenli.</p>
+    <div class="brand-steps">
+      <div class="brand-step">
+        <div class="step-circle">1</div>
+        <div class="step-text"><h4>Bilgilerini gir</h4><p>Ad, e-posta ve gelir bilgilerini ekle.</p></div>
+      </div>
+      <div class="brand-step">
+        <div class="step-circle">2</div>
+        <div class="step-text"><h4>İlk fişini yükle</h4><p>Hemen analiz etmeye başla.</p></div>
+      </div>
+      <div class="brand-step">
+        <div class="step-circle">3</div>
+        <div class="step-text"><h4>Kontrol sende</h4><p>Raporlar, bütçe ve AI asistan hazır.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="auth-right">
+  <div class="auth-card">
+    <div class="auth-card-header">
+      <h2>Aramıza Katıl</h2>
+      <p>Yeni hesap oluşturmak sadece 1 dakika sürer.</p>
+    </div>
+
+    {% if hata %}
+    <div class="error-box">⚠️ {{ hata }}</div>
+    {% endif %}
+
+    <form action="/register" method="POST">
+
+      <div class="section-mini">Temel Bilgiler</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Ad Soyad</label>
+          <input class="form-input" type="text" name="ad" placeholder="Ahmet Yılmaz" required>
+        </div>
+        <div class="form-group">
+          <label>Telefon <span class="optional-tag">isteğe bağlı</span></label>
+          <input class="form-input" type="tel" name="telefon" placeholder="05xx xxx xx xx">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>E-posta Adresi</label>
+        <input class="form-input" type="email" name="email" placeholder="ornek@email.com" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Şifre</label>
+          <input class="form-input" type="password" name="sifre" placeholder="En az 6 karakter" required>
+        </div>
+        <div class="form-group">
+          <label>Şifre Tekrar</label>
+          <input class="form-input" type="password" name="sifre_tekrar" placeholder="Tekrar girin" required>
+        </div>
+      </div>
+
+      <div class="section-mini">Kişisel Bilgiler <span class="optional-tag">isteğe bağlı</span></div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Doğum Tarihi</label>
+          <input class="form-input" type="date" name="dogum_tarihi">
+        </div>
+        <div class="form-group">
+          <label>Meslek</label>
+          <input class="form-input" type="text" name="meslek" placeholder="Yazılım Geliştirici">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Şehir</label>
+        <input class="form-input" type="text" name="sehir" placeholder="İstanbul">
+      </div>
+
+      <button type="submit" class="auth-btn">Hesap Oluştur →</button>
+    </form>
+
+    <div class="auth-footer">Zaten hesabın var mı? <a href="/login">Giriş Yap</a></div>
+    <p class="terms-note">Kayıt olarak Gizlilik Politikası ve Kullanım Koşullarını kabul etmiş sayılırsınız.</p>
+  </div>
+</div>
+
+<script src="/static/js/theme.js"></script>
+</body>
+</html>

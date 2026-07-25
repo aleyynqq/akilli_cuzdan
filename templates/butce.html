@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bütçe Yönetimi – AkıllıCüzdan</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+<style>.page-title .bi,.budget-title .bi,.budget-card-label .bi,.side-title .bi{margin-right:7px;color:#93c5fd}</style>
+<style>
+  .budget-topbar{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:22px;}
+  .month-form{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px;}
+  .month-form .form-input{min-width:160px;padding:10px 12px;}
+  .budget-layout{display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start;}
+  .budget-section{display:flex;flex-direction:column;gap:16px;}
+  .summary-note{color:var(--muted2);font-size:13px;line-height:1.6;margin-top:6px;}
+  .budget-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;transition:.2s;}
+  .budget-card:hover{border-color:var(--border2);transform:translateY(-1px);}
+  .budget-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px;}
+  .budget-cat{font-weight:800;font-size:16px;color:#fff;}
+  .budget-status{font-size:11px;font-weight:800;padding:5px 10px;border-radius:999px;white-space:nowrap;}
+  .budget-status.safe{background:rgba(16,185,129,.12);color:#6ee7b7;border:1px solid rgba(16,185,129,.22);}
+  .budget-status.warning{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.22);}
+  .budget-status.danger{background:rgba(239,68,68,.12);color:#fca5a5;border:1px solid rgba(239,68,68,.22);}
+  .budget-numbers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+  .budget-num{background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:12px;padding:11px;}
+  .budget-num small{display:block;color:var(--muted);font-size:11px;font-weight:700;margin-bottom:4px;}
+  .budget-num strong{font-size:15px;color:#fff;}
+  .budget-bar{height:10px;background:rgba(255,255,255,.07);border-radius:999px;overflow:hidden;margin-bottom:10px;}
+  .budget-fill{height:100%;border-radius:999px;transition:.4s;width:0;}
+  .budget-fill.safe{background:var(--success);}
+  .budget-fill.warning{background:var(--warning);}
+  .budget-fill.danger{background:var(--danger);}
+  .budget-card-foot{display:flex;justify-content:space-between;align-items:center;color:var(--muted2);font-size:12px;}
+  .budget-del{color:#fca5a5;font-size:12px;font-weight:800;text-decoration:none;}
+  .ai-budget-box{background:linear-gradient(135deg,rgba(91,69,250,.12),rgba(6,182,212,.08));border:1px solid rgba(91,69,250,.28);border-radius:18px;padding:22px;line-height:1.75;color:#dbeafe;font-size:14px;}
+  .ai-budget-title{font-weight:800;color:#fff;margin-bottom:10px;display:flex;gap:8px;align-items:center;}
+  .alert-list{display:flex;flex-direction:column;gap:10px;}
+  .budget-alert{padding:13px 14px;border-radius:13px;border:1px solid rgba(245,158,11,.22);background:rgba(245,158,11,.08);font-size:13px;line-height:1.5;color:#fde68a;}
+  .budget-alert.danger{border-color:rgba(239,68,68,.24);background:rgba(239,68,68,.08);color:#fecaca;}
+  .suggest-list{display:flex;flex-direction:column;gap:9px;}
+  .suggest-item{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid var(--border);font-size:13px;}
+  .receipt-link{color:#a78bfa;font-weight:700;}
+  .table-wrap{overflow-x:auto;}
+  .budget-table td,.budget-table th{white-space:nowrap;}
+  @media(max-width:1050px){.budget-layout{grid-template-columns:1fr}.budget-topbar{flex-direction:column}.month-form{width:100%}.budget-numbers{grid-template-columns:1fr}}
+</style>
+<script>
+(function(){
+  try {
+    var saved = localStorage.getItem('akillicuzdan-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+  } catch(e) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+</script>
+<link rel="stylesheet" href="/static/css/theme.css">
+</head>
+<body>
+<div class="app-layout">
+{% from 'layout.html' import sidebar, flash_messages %}
+{{ sidebar('butce') }}
+
+<div class="main">
+  <div class="main-inner">
+
+    <div class="budget-topbar">
+      <div class="page-header" style="margin-bottom:0;">
+        <h1 class="page-title"></i> Bütçe Yönetimi</h1>
+        <p class="page-desc">Fişlerden gelen gerçek harcamaları aylık kategori limitleriyle karşılaştırın.</p>
+        <div class="summary-note">Seçili dönem: <strong style="color:#fff;">{{ ay_label }}</strong></div>
+      </div>
+      <form class="month-form" method="GET" action="/butce">
+        <input class="form-input" type="month" name="ay" value="{{ ay }}">
+        <button class="btn btn-primary" type="submit">Dönemi Göster</button>
+      </form>
+    </div>
+
+    {{ flash_messages() }}
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">🎯 Toplam Bütçe</div>
+        <div class="stat-value">{{ toplam_butce }} TL</div>
+        <div class="stat-sub">Planlanan aylık limit</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">💳 Harcanan</div>
+        <div class="stat-value">{{ toplam_harcanan }} TL</div>
+        <div class="stat-sub">Bütçeli kategorilerde</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">💰 Kalan</div>
+        <div class="stat-value" style="color:{{ '#6ee7b7' if kalan_butce>=0 else '#fca5a5' }}">{{ kalan_butce }} TL</div>
+        <div class="stat-sub">Kalan bütçe</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">📊 Kullanım</div>
+        <div class="stat-value">%{{ kullanim_orani }}</div>
+        <div class="stat-sub">Toplam bütçe kullanımı</div>
+      </div>
+    </div>
+
+    <div class="budget-layout">
+      <div class="budget-section">
+
+        <div class="ai-budget-box">
+          <div class="ai-budget-title"><i class="bi bi-cpu"></i> AI Bütçe Yorumu</div>
+          {{ ai_yorum }}
+        </div>
+
+        {% if uyarilar %}
+        <div class="panel">
+          <div class="panel-title">⚠️ Limit Uyarıları</div>
+          <div class="alert-list">
+            {% for u in uyarilar %}
+            <div class="budget-alert {{ u.tip }}">{{ u.metin }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="panel">
+          <div class="panel-title"><i class="bi bi-list-check"></i> Kategori Bütçeleri</div>
+
+          {% if butce_durumu %}
+          {% for b in butce_durumu %}
+          <div class="budget-card">
+            <div class="budget-head">
+              <div>
+                <div class="budget-cat">{{ b.kategori }}</div>
+                <div class="summary-note">{{ ay_label }} dönemi</div>
+              </div>
+              <span class="budget-status {{ b.durum_class }}">{{ b.durum }}</span>
+            </div>
+
+            <div class="budget-numbers">
+              <div class="budget-num"><small>Limit</small><strong>{{ b.limit }} TL</strong></div>
+              <div class="budget-num"><small>Harcanan</small><strong>{{ b.harcanan }} TL</strong></div>
+              <div class="budget-num"><small>Kalan</small><strong style="color:{{ '#6ee7b7' if b.kalan>=0 else '#fca5a5' }}">{{ b.kalan }} TL</strong></div>
+            </div>
+
+            <div class="budget-bar">
+              <div class="budget-fill {{ b.durum_class }}" style="width:{{ b.bar_oran }}%"></div>
+            </div>
+
+            <div class="budget-card-foot">
+              <span>Kullanım oranı: <strong>%{{ b.oran }}</strong></span>
+              <a class="budget-del" href="/butce/sil/{{ b.id }}?ay={{ ay }}" onclick="return confirm('Bu bütçeyi silmek istediğinize emin misiniz?')"><i class="bi bi-trash3"></i> Sil</a>
+            </div>
+          </div>
+          {% endfor %}
+          {% else %}
+          <div class="empty-state">
+            <div class="emoji">🎯</div>
+            <h3>Henüz Bütçe Yok</h3>
+            <p>Bir kategori seçip aylık limit belirleyerek bütçe takibine başlayın.</p>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="panel">
+          <div class="panel-title"><i class="bi bi-table"></i> Bütçe Karşılaştırma Tablosu</div>
+          {% if butce_durumu %}
+          <div class="table-wrap">
+            <table class="recent-table budget-table">
+              <thead>
+                <tr>
+                  <th>Kategori</th>
+                  <th>Limit</th>
+                  <th>Harcanan</th>
+                  <th>Kalan</th>
+                  <th>Kullanım</th>
+                  <th>Durum</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for b in butce_durumu %}
+                <tr>
+                  <td><span class="cat-badge">{{ b.kategori }}</span></td>
+                  <td>{{ b.limit }} TL</td>
+                  <td>{{ b.harcanan }} TL</td>
+                  <td style="color:{{ '#6ee7b7' if b.kalan>=0 else '#fca5a5' }}">{{ b.kalan }} TL</td>
+                  <td>%{{ b.oran }}</td>
+                  <td>{{ b.durum }}</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="summary-note">Tablo oluşturmak için önce bütçe limiti ekleyin.</p>
+          {% endif %}
+        </div>
+
+      </div>
+
+      <div class="budget-section">
+        <div class="panel">
+          <div class="panel-title"><i class="bi bi-plus-circle"></i> Bütçe Ekle / Güncelle</div>
+          <form method="POST" action="/butce">
+            <div class="form-group">
+              <label>Dönem</label>
+              <input class="form-input" type="month" name="ay" value="{{ ay }}" required>
+            </div>
+            <div class="form-group">
+              <label>Kategori</label>
+              <select class="form-input" name="kategori" required>
+                {% for k in kategoriler %}
+                <option value="{{ k }}">{{ k }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Aylık Limit (TL)</label>
+              <input class="form-input" type="number" step="0.01" min="1" name="limit" placeholder="Örn. 5000" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;"><i class="bi bi-save"></i> Kaydet</button>
+          </form>
+          <div class="summary-note">Aynı ay ve kategori için tekrar kayıt girerseniz mevcut limit güncellenir.</div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title"><i class="bi bi-cash-stack"></i> Gelir - Bütçe Dengesi</div>
+          <div class="summary-grid">
+            <div class="summary-item"><div class="s-label">Aylık Gelir</div><div class="s-value">{{ toplam_gelir }} TL</div></div>
+            <div class="summary-item"><div class="s-label">Bütçe / Gelir</div><div class="s-value">%{{ gelir_orani }}</div></div>
+            <div class="summary-item"><div class="s-label">Tahmini Birikim</div><div class="s-value" style="color:{{ '#6ee7b7' if tahmini_birikim>=0 else '#fca5a5' }}">{{ tahmini_birikim }} TL</div></div>
+            <div class="summary-item"><div class="s-label">Abonelikler</div><div class="s-value">{{ abonelik_toplam }} TL</div></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title"><i class="bi bi-receipt"></i> Bu Ay Bütçeyi En Çok Etkileyen Fişler</div>
+          {% if top_fisler %}
+          <table class="recent-table">
+            <thead><tr><th>Mağaza</th><th>Kategori</th><th>Tutar</th></tr></thead>
+            <tbody>
+            {% for f in top_fisler %}
+            <tr>
+              <td><a class="receipt-link" href="/receipt/{{ f.id }}">{{ f.magaza }}</a><br><small style="color:var(--muted);">{{ f.tarih }}</small></td>
+              <td><span class="cat-badge">{{ f.kategori }}</span></td>
+              <td>{{ f.toplam }} TL</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p class="summary-note">Bu dönem için kayıtlı fiş bulunamadı.</p>
+          {% endif %}
+        </div>
+
+        {% if butcesiz_harcamalar %}
+        <div class="panel">
+          <div class="panel-title">💡 Bütçe Önerileri</div>
+          <div class="suggest-list">
+            {% for item in butcesiz_harcamalar[:5] %}
+            <div class="suggest-item">
+              <span>{{ item.kategori }} için bütçe tanımlanmadı</span>
+              <strong>{{ item.harcanan }} TL</strong>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="summary-note">Bu kategorilerde harcama var ama limit yok. Jüri demosunda burası sistemin öneri ürettiğini göstermek için güçlüdür.</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+<script src="/static/js/theme.js"></script>
+</body>
+</html>
